@@ -377,6 +377,7 @@ class WPAICal_Admin {
                                 <label><input type="radio" name="scope" value="occurrence" checked> This date only</label>
                                 &nbsp;
                                 <label><input type="radio" name="scope" value="series"> All dates in the series (time and category)</label>
+                                <br><span class="description">Changing the time of the whole series resets any single-date changes made to it.</span>
                             </p>
                             <p class="wpaical-qe-note description" hidden>All-day event: only the category can be changed here. Change dates in Google Calendar.</p>
                             <p><button type="submit" class="button button-primary">Update</button> <button type="button" class="button wpaical-qe-cancel">Cancel</button></p>
