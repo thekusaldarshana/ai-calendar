@@ -37,6 +37,6 @@ class WPAICal_Elementor {
 
     public static function category_options() {
         $cats = WPAICal_Registry::all_categories();
-        return array_combine($cats, $cats);
+        return $cats ? array_combine($cats, $cats) : [];
     }
 }

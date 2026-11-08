@@ -4,7 +4,7 @@ Tags: calendar, events, google calendar, rest api, mcp
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.1.12
+Stable tag: 0.1.13
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -19,7 +19,11 @@ Edit your events in Google Calendar, where recurrence, exceptions and mobile app
 * **Public JSON API** for your website or digital signage: `/wp-json/wpaical/v1/events?start_date=&end_date=&per_page=`. The response includes the site timezone.
 * **Program registry.** Map an event title to a page on your site and a category (Google Calendar has no field for this). One-off overrides with `page:` / `category:` lines in an event's description.
 * **Dashboard.** Sync status, upcoming events, quick add, quick edit (date, time, category), and a one-click link to open the calendar in Google.
+* **Display it anywhere.** `[wpaical_calendar]` (month / week / list calendar with category filter, day dialog and timezone switch) and `[wpaical_upcoming]` (event cards per program), also available as Elementor widgets (Elementor is optional) and block editor blocks.
+* **Program cards editor.** Choose the picture, link and text of each program's card from the dashboard.
 * **MCP server** at `/wp-json/wpaical/mcp` (Model Context Protocol, Streamable HTTP, JSON). AI agents can list, create, update, delete and cancel events using a WordPress Application Password, the same way they use other WordPress MCP servers.
+
+This plugin is not affiliated with or endorsed by Google. Google Calendar is a trademark of Google LLC.
 
 A ready-made Agent Skill that teaches an AI agent to use the MCP tools safely is available in the GitHub repository.
 
@@ -55,6 +59,9 @@ Every 5 minutes, and immediately after any change made through the plugin.
 
 == Changelog ==
 
+= 0.1.13 =
+* Fix: calendar failed to load on plain permalinks; PHP 7.4 fatal in the Elementor editor; Program cards links with special characters; UTC-offset site timezones; keyboard focus after redraw.
+* Readme: Elementor widgets and blocks documented.
 = 0.1.12 =
 * Calendar buttons keep their colours on hover and focus even when a theme restyles all buttons (no more theme-coloured category chips after a click). New --wpaical-cal-chip-hover-bg and --wpaical-cal-chip-hover-color variables set the category chips' hover colour.
 
@@ -116,10 +123,15 @@ Every 5 minutes, and immediately after any change made through the plugin.
 
 == Upgrade Notice ==
 
+= 0.1.13 =
+Fixes the calendar not loading on sites with plain permalinks, a PHP 7.4 error in the Elementor editor, and keyboard focus handling.
+
 = 0.1.4 =
 Security and reliability release. Private Google events are no longer published, and several input checks were added.
 
 == External services ==
+
+Event pictures (the optional `image` of an event or Program card) are loaded by the visitor's browser from whatever address you enter, which can be another host; use pictures from your own media library if that matters.
 
 This plugin connects to Google services to read, and (when you use the quick add, quick edit or MCP create/update/delete features) write events in the one Google Calendar you configure.
 

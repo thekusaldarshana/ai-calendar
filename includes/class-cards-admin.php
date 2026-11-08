@@ -48,7 +48,7 @@ class WPAICal_Cards_Admin {
     private static function url($program = '') {
         $args = ['page' => self::SLUG];
         if ($program !== '') {
-            $args['program'] = $program;
+            $args['program'] = rawurlencode($program);
         }
         return add_query_arg($args, admin_url('admin.php'));
     }

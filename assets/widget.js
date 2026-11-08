@@ -21,6 +21,7 @@
     root.__wpaical = true;
     var site = root.getAttribute('data-tz');
     var cards = root.querySelectorAll('.wpaical-card[data-start]'); // date-less cards have no data-start and are left alone
+    try { new Intl.DateTimeFormat('en-US', { timeZone: site }); } catch (e) { return; }
     if (!site || !cards.length || viewer === site) { return; } // same zone: nothing to convert
 
     var mode = 'viewer';

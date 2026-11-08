@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.1.13] - 2026-11-08
+### Fixed
+- Calendar events failed to load on sites using plain permalinks (REST URL already had a query string).
+- PHP 7.4 fatal in the Elementor editor when no categories exist.
+- Program names containing `&`, `#`, `+` or `%` broke the Program cards links and redirects.
+- A site timezone expressed as a UTC offset no longer stops the calendar scripts from starting.
+- Keyboard focus is kept on the control you used after the calendar redraws; each calendar's dialog has its own heading id.
+- Readme: Elementor widgets and blocks documented; non-affiliation with Google stated.
+
 ## [0.1.12] - 2026-11-08
 ### Fixed
 - Navigation, Today, view-toggle and category buttons are immune to theme-wide `button:hover/:focus/:active` colours.

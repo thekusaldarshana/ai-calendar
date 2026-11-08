@@ -5,6 +5,10 @@
   var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   var DOWS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   var VIEWER_TZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  var instances = 0;
+  function validTz(tz) {
+    try { new Intl.DateTimeFormat('en-US', { timeZone: tz }); return !!tz; } catch (e) { return false; }
+  }
   var TZ_KEY = 'wpaicalCalTz';
 
   function esc(s) {
@@ -55,6 +59,8 @@
   function Calendar(root) {
     var cfg;
     try { cfg = JSON.parse(root.getAttribute('data-config')); } catch (e) { return; }
+    var uid = 'wc-mt-' + (++instances);
+    if (!validTz(cfg.tz)) { cfg.tz = VIEWER_TZ; }
     var self = this;
     var tzMode = 'viewer';
     try { if (localStorage.getItem(TZ_KEY) === 'site') { tzMode = 'site'; } } catch (e) {}
@@ -123,10 +129,10 @@
       if (loaded[key]) { return Promise.resolve(); }
       var from = new Date(y, m, 1); from.setDate(from.getDate() - 7);
       var to = new Date(y, m + 1, 0); to.setDate(to.getDate() + 7);
-      return fetch(cfg.rest + '?per_page=500&start_date=' + iso(from) + '&end_date=' + iso(to))
+      return fetch(cfg.rest + (cfg.rest.indexOf('?') < 0 ? '?' : '&') + 'per_page=500&start_date=' + iso(from) + '&end_date=' + iso(to))
         .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
         .then(function (d) {
-          if (d.timezone) { cfg.tz = d.timezone; }
+          if (d.timezone && validTz(d.timezone)) { cfg.tz = d.timezone; }
           (d.events || []).forEach(function (e) { SRC[e.id] = e; });
           loaded[key] = true;
         });
@@ -190,7 +196,7 @@
       root.appendChild(shell);
       var ov = document.createElement('div');
       ov.className = 'wc-overlay'; ov.hidden = true;
-      ov.innerHTML = '<div class="wc-modal" role="dialog" aria-modal="true" aria-labelledby="wc-mt"><button type="button" class="wc-close" aria-label="Close">&#10005;</button><h3 id="wc-mt"></h3><div class="wc-mbody"></div></div>';
+      ov.innerHTML = '<div class="wc-modal" role="dialog" aria-modal="true" aria-labelledby="' + uid + '"><button type="button" class="wc-close" aria-label="Close">&#10005;</button><h3 id="' + uid + '"></h3><div class="wc-mbody"></div></div>';
       root.appendChild(ov);
       self.overlay = ov;
       ov.addEventListener('click', function (e) { if (e.target === ov || e.target.closest('.wc-close')) { closeModal(); } });
@@ -222,6 +228,19 @@
       return US[tz] || tzName(tz, long);
     }
     function draw() {
+      var ae = document.activeElement, fsel = null;
+      if (ae && shell && shell.contains(ae)) {
+        ['data-view', 'data-nav', 'data-tz', 'data-filter'].some(function (a) {
+          if (ae.hasAttribute(a)) { fsel = '[' + a + '="' + String(ae.getAttribute(a)).replace(/["\\]/g, '\\$&') + '"]'; return true; }
+          return false;
+        });
+      }
+      var wasToday = !!(ae && ae.classList && ae.classList.contains('wc-today') && shell && shell.contains(ae));
+      if (wasToday) { fsel = '.wc-today'; }
+      drawInner();
+      if (fsel) { try { var el = shell.querySelector(fsel); if (el) { el.focus(); } } catch (e) {} }
+    }
+    function drawInner() {
       var showTz = cfg.tzToggle && !sameZone();
       var tzGroup = showTz ? '<div class="wc-views wc-tzgroup" role="group" aria-label="Show event times in">' +
         '<button type="button" data-tz="viewer" aria-pressed="' + (tzMode === 'viewer') + '">Your time</button>' +
@@ -231,7 +250,7 @@
       }).join('') + '</div>' : '';
       var legend = '';
       if (cfg.legend && cfg.cats.length) {
-        legend = '<div class="wc-legend" role="group" aria-label="Filter by category"><button type="button" class="wc-chip" data-cat="all" aria-pressed="' + (activeCat === 'all') + '"><span class="dot"></span>All Events</button>' +
+        legend = '<div class="wc-legend" role="group" aria-label="Filter by category"><button type="button" class="wc-chip" data-filter="" data-cat="all" aria-pressed="' + (activeCat === 'all') + '"><span class="dot"></span>All Events</button>' +
           cfg.cats.map(function (c) {
             return '<button type="button" class="wc-chip" data-filter="' + esc(c.name) + '" data-cat="' + esc(c.slug) + '" aria-pressed="' + (activeCat === c.name) + '"><span class="dot"></span>' + esc(label(c.name)) + '</button>';
           }).join('') + '</div>';
@@ -334,7 +353,7 @@
     (scope || document).querySelectorAll('.wpaical-cal[data-config]').forEach(function (r) {
       if (r.__wpaical) { return; } // already running (page builders may call this again)
       r.__wpaical = true;
-      new Calendar(r);
+      try { new Calendar(r); } catch (e) { if (window.console) { console.error('WP AI Calendar:', e); } }
     });
   }
   window.WPAICalInit = window.WPAICalInit || {};
