@@ -79,7 +79,7 @@ class WPAICal_MCP {
                 return self::result($id, [
                     'protocolVersion' => self::PROTOCOL,
                     'capabilities'    => ['tools' => ['listChanged' => false]],
-                    'serverInfo'      => ['name' => 'wp-ai-calendar', 'version' => WPAICAL_VERSION],
+                    'serverInfo'      => ['name' => 'ai-calendar', 'version' => WPAICAL_VERSION],
                     'instructions'    => self::instructions(),
                 ]);
             case 'ping':
@@ -179,7 +179,7 @@ class WPAICal_MCP {
     private static function ctx() {
         $cal = get_option('wpaical_calendar_id', '');
         if ($cal === '') {
-            return new WP_Error('wpaical_mcp_cfg', 'No Google Calendar ID is configured (Settings -> WP AI Calendar).');
+            return new WP_Error('wpaical_mcp_cfg', 'No Google Calendar ID is configured (Settings -> AI Calendar).');
         }
         $client = WPAICal_Google_Client::from_settings();
         return is_wp_error($client) ? $client : [$client, $cal];

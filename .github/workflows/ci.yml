@@ -25,8 +25,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Plugin header, constant and readme stable tag must match
         run: |
-          h=$(grep -m1 '^ \* Version:' wp-ai-calendar.php | awk '{print $3}')
-          c=$(grep -m1 "WPAICAL_VERSION'" wp-ai-calendar.php | sed -E "s/.*'([0-9][^']*)'.*/\1/")
+          h=$(grep -m1 '^ \* Version:' ai-calendar.php | awk '{print $3}')
+          c=$(grep -m1 "WPAICAL_VERSION'" ai-calendar.php | sed -E "s/.*'([0-9][^']*)'.*/\1/")
           s=$(grep -m1 '^Stable tag:' readme.txt | awk '{print $3}')
           echo "header=$h constant=$c stable=$s"
           [ "$h" = "$c" ] && [ "$h" = "$s" ]

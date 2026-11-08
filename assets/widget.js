@@ -1,4 +1,4 @@
-/* WP AI Calendar [wpaical_upcoming]: show card times in the visitor's timezone, with a site-time toggle. */
+/* AI Calendar [wpaical_upcoming]: show card times in the visitor's timezone, with a site-time toggle. */
 (function () {
   'use strict';
   var KEY = 'wpaicalTz';

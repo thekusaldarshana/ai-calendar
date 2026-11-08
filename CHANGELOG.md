@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.1.14] - 2026-11-08
+### Changed
+- Renamed to **AI Calendar** (slug `ai-calendar`, text domain `ai-calendar`, main file `ai-calendar.php`) for the WordPress.org directory, which discourages the `wp` prefix. Internal `wpaical` ids, options, REST routes and shortcodes are unchanged, so existing sites keep their settings and pages. The dashboard page address is now `admin.php?page=ai-calendar`.
+- Plugin Check clean-ups (escaping markers, nonce/sanitising notes, uninstall variable prefix).
+
 ## [0.1.13] - 2026-11-08
 ### Fixed
 - Calendar events failed to load on sites using plain permalinks (REST URL already had a query string).

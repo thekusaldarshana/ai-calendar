@@ -11,11 +11,11 @@ jobs:
       - uses: actions/checkout@v4
       - name: Verify tag matches plugin version
         run: |
-          v=$(grep -m1 '^ \* Version:' wp-ai-calendar.php | awk '{print $3}')
+          v=$(grep -m1 '^ \* Version:' ai-calendar.php | awk '{print $3}')
           [ "v$v" = "${GITHUB_REF_NAME}" ] || { echo "tag ${GITHUB_REF_NAME} != plugin version $v"; exit 1; }
       - name: Build zip
-        run: git archive --prefix=wp-ai-calendar/ -o wp-ai-calendar.zip HEAD
+        run: git archive --prefix=ai-calendar/ -o ai-calendar.zip HEAD
       - name: Publish release asset
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" wp-ai-calendar.zip --generate-notes || gh release upload "$GITHUB_REF_NAME" wp-ai-calendar.zip --clobber
+        run: gh release create "$GITHUB_REF_NAME" ai-calendar.zip --generate-notes || gh release upload "$GITHUB_REF_NAME" ai-calendar.zip --clobber

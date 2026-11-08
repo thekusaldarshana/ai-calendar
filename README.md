@@ -1,8 +1,8 @@
-# WP AI Calendar
+# AI Calendar
 
-[![CI](https://github.com/thekusaldarshana/wp-ai-calendar/actions/workflows/ci.yml/badge.svg)](https://github.com/thekusaldarshana/wp-ai-calendar/actions/workflows/ci.yml) [![License: GPL v2+](https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg)](LICENSE) ![WordPress 6.0+](https://img.shields.io/badge/WordPress-6.0%2B-21759b) ![PHP 7.4+](https://img.shields.io/badge/PHP-7.4%2B-777bb4)
+[![CI](https://github.com/thekusaldarshana/ai-calendar/actions/workflows/ci.yml/badge.svg)](https://github.com/thekusaldarshana/ai-calendar/actions/workflows/ci.yml) [![License: GPL v2+](https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg)](LICENSE) ![WordPress 6.0+](https://img.shields.io/badge/WordPress-6.0%2B-21759b) ![PHP 7.4+](https://img.shields.io/badge/PHP-7.4%2B-777bb4)
 
-Use **Google Calendar as the single source of truth** for your events. WP AI Calendar syncs it into WordPress, serves a fast JSON API for your website and digital signage, and exposes an **MCP server** so AI agents (Claude, etc.) can manage events for you.
+Use **Google Calendar as the single source of truth** for your events. AI Calendar syncs it into WordPress, serves a fast JSON API for your website and digital signage, and exposes an **MCP server** so AI agents (Claude, etc.) can manage events for you.
 
 ## Why
 
@@ -15,7 +15,7 @@ Calendar plugins want to own your data *and* your display, and recurring events 
 
 ## Install
 
-1. Download the latest zip from [Releases](https://github.com/thekusaldarshana/wp-ai-calendar/releases) (or zip this repo's contents into a `wp-ai-calendar/` folder).
+1. Download the latest zip from [Releases](https://github.com/thekusaldarshana/ai-calendar/releases) (or zip this repo's contents into a `ai-calendar/` folder).
 2. WordPress admin → **Plugins → Add New → Upload Plugin** → activate.
 3. Set **Settings → General → Timezone** to a city (not a UTC offset).
 
@@ -64,4 +64,4 @@ GPL-2.0-or-later. Copyright (C) 2026 Kusal Darshana.
 
 ## Agent skills
 
-`skills/wp-ai-calendar/SKILL.md` is a ready-made [Agent Skill](https://agentskills.io) that teaches an AI agent how and when to use the MCP tools safely (read before write, series vs occurrence ids, recurrence rules, confirm destructive changes). Copy the `wp-ai-calendar` folder into your agent's skills directory (for Claude Code: `~/.claude/skills/` or `.claude/skills/`).
+`skills/ai-calendar/SKILL.md` is a ready-made [Agent Skill](https://agentskills.io) that teaches an AI agent how and when to use the MCP tools safely (read before write, series vs occurrence ids, recurrence rules, confirm destructive changes). Copy the `ai-calendar` folder into your agent's skills directory (for Claude Code: `~/.claude/skills/` or `.claude/skills/`).

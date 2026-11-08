@@ -11,7 +11,7 @@ class WPAICal_Assets {
     }
 
     public static function url($file) {
-        return plugins_url('assets/' . $file, WPAICAL_DIR . 'wp-ai-calendar.php');
+        return plugins_url('assets/' . $file, WPAICAL_DIR . 'ai-calendar.php');
     }
 
     public static function register() {

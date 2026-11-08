@@ -1,4 +1,4 @@
-/* WP AI Calendar: [wpaical_upcoming]. Override the variables (Settings -> Widget CSS) to match your theme. */
+/* AI Calendar: [wpaical_upcoming]. Override the variables (Settings -> Widget CSS) to match your theme. */
 .wpaical-up{--wpaical-text:#1d2327;--wpaical-muted:#646970;--wpaical-accent:#2271b1;--wpaical-accent-hover:#135e96;--wpaical-soft:#e8f0f7;--wpaical-line:#dcdcde;--wpaical-card:#fff;font-family:inherit;color:var(--wpaical-text);max-width:1180px;margin:0 auto;padding:8px 0}
 .wpaical-up *{box-sizing:border-box}
 .wpaical-up .wpaical-up-title{text-align:center;font-size:clamp(28px,4vw,40px);font-weight:600;margin:0 0 6px;color:var(--wpaical-text)}

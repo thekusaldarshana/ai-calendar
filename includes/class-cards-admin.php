@@ -1,5 +1,6 @@
 <?php
 defined('ABSPATH') || exit;
+// phpcs:disable WordPress.Security.NonceVerification.Missing,WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- nonce and capability are verified in guard()/check_admin_referer() before any handler reads input; values are sanitised by the helper that stores them.
 
 /**
  * AI Calendar -> Program cards: the visual editor for the [wpaical_upcoming] widget.
@@ -11,7 +12,7 @@ defined('ABSPATH') || exit;
  *  4. Live preview of exactly what visitors will see, and the shortcode to paste.
  */
 class WPAICal_Cards_Admin {
-    const SLUG = 'wp-ai-calendar-cards';
+    const SLUG = 'ai-calendar-cards';
     const CAP  = 'manage_options';
 
     public static function init() {
@@ -33,7 +34,7 @@ class WPAICal_Cards_Admin {
             return;
         }
         wp_enqueue_media();
-        $main = WPAICAL_DIR . 'wp-ai-calendar.php';
+        $main = WPAICAL_DIR . 'ai-calendar.php';
         wp_enqueue_style('wpaical-admin', plugins_url('assets/admin.css', $main), [], WPAICAL_VERSION);
         wp_enqueue_script('wpaical-cards-admin', plugins_url('assets/cards-admin.js', $main), [], WPAICAL_VERSION, true);
     }

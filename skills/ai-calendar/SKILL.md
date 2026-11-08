@@ -1,13 +1,13 @@
 ---
-name: wp-ai-calendar
-description: Manage a website's events through the WP AI Calendar MCP server (Google Calendar is the source of truth). Use when asked what events are scheduled, or to add, change, move, cancel or delete an event or recurring series, or to link an event to a program page or category.
+name: ai-calendar
+description: Manage a website's events through the AI Calendar MCP server (Google Calendar is the source of truth). Use when asked what events are scheduled, or to add, change, move, cancel or delete an event or recurring series, or to link an event to a program page or category.
 version: 0.1.4
 license: GPL-2.0-or-later
 ---
 
-# Managing events with WP AI Calendar
+# Managing events with AI Calendar
 
-The site's events live in **Google Calendar**. The WP AI Calendar plugin caches them and serves them to the website and any display (a TV, a widget) from one JSON endpoint. You reach it through the plugin's **MCP server** (`/wp-json/wpaical/mcp`), so every change you make shows up everywhere. Never edit a page's calendar HTML or a separate event plugin for this.
+The site's events live in **Google Calendar**. The AI Calendar plugin caches them and serves them to the website and any display (a TV, a widget) from one JSON endpoint. You reach it through the plugin's **MCP server** (`/wp-json/wpaical/mcp`), so every change you make shows up everywhere. Never edit a page's calendar HTML or a separate event plugin for this.
 
 ## Tools
 

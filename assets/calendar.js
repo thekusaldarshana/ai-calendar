@@ -1,4 +1,4 @@
-/* WP AI Calendar [wpaical_calendar]: month / week / list calendar of the cached events. */
+/* AI Calendar [wpaical_calendar]: month / week / list calendar of the cached events. */
 (function () {
   'use strict';
 
@@ -353,7 +353,7 @@
     (scope || document).querySelectorAll('.wpaical-cal[data-config]').forEach(function (r) {
       if (r.__wpaical) { return; } // already running (page builders may call this again)
       r.__wpaical = true;
-      try { new Calendar(r); } catch (e) { if (window.console) { console.error('WP AI Calendar:', e); } }
+      try { new Calendar(r); } catch (e) { if (window.console) { console.error('AI Calendar:', e); } }
     });
   }
   window.WPAICalInit = window.WPAICalInit || {};

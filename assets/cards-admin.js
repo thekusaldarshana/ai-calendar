@@ -1,4 +1,4 @@
-/* WP AI Calendar: Program cards editor (inline edit rows, media picker, shortcode box). */
+/* AI Calendar: Program cards editor (inline edit rows, media picker, shortcode box). */
 (function () {
   'use strict';
 

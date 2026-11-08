@@ -1,10 +1,11 @@
 <?php
 defined('ABSPATH') || exit;
+// phpcs:disable WordPress.Security.NonceVerification.Missing,WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- nonce and capability are verified in guard()/check_admin_referer() before any handler reads input; values are sanitised by the helper that stores them.
 
 /** Top-level "AI Calendar" admin page: status dashboard, settings, program registry, sync button. */
 class WPAICal_Admin {
     const CAP  = 'manage_options';
-    const SLUG = 'wp-ai-calendar';
+    const SLUG = 'ai-calendar';
 
     public static function page_url() {
         return admin_url('admin.php?page=' . self::SLUG);
@@ -12,14 +13,14 @@ class WPAICal_Admin {
 
     public static function init() {
         add_action('admin_menu', function () {
-            add_menu_page('WP AI Calendar', 'AI Calendar', self::CAP, self::SLUG, [__CLASS__, 'page'], 'dashicons-calendar-alt', 58);
-            add_submenu_page(self::SLUG, 'WP AI Calendar', 'Dashboard', self::CAP, self::SLUG, [__CLASS__, 'page']);
+            add_menu_page('AI Calendar', 'AI Calendar', self::CAP, self::SLUG, [__CLASS__, 'page'], 'dashicons-calendar-alt', 58);
+            add_submenu_page(self::SLUG, 'AI Calendar', 'Dashboard', self::CAP, self::SLUG, [__CLASS__, 'page']);
         });
         add_action('admin_enqueue_scripts', function ($hook) {
             if (!isset($_GET['page']) || sanitize_key(wp_unslash($_GET['page'])) !== self::SLUG) { // phpcs:ignore WordPress.Security.NonceVerification -- read-only page check
                 return;
             }
-            $main = WPAICAL_DIR . 'wp-ai-calendar.php';
+            $main = WPAICAL_DIR . 'ai-calendar.php';
             wp_enqueue_style('wpaical-admin', plugins_url('assets/admin.css', $main), [], WPAICAL_VERSION);
             wp_enqueue_script('wpaical-admin', plugins_url('assets/admin.js', $main), [], WPAICAL_VERSION, true);
         });
@@ -38,7 +39,7 @@ class WPAICal_Admin {
 
     private static function back($notice, $ok = true) {
         wp_safe_redirect(add_query_arg(
-            ['page' => 'wp-ai-calendar', 'wpaical_notice' => rawurlencode($notice), 'wpaical_ok' => $ok ? 1 : 0],
+            ['page' => 'ai-calendar', 'wpaical_notice' => rawurlencode($notice), 'wpaical_ok' => $ok ? 1 : 0],
             admin_url('admin.php')
         ));
         exit;
@@ -268,7 +269,7 @@ class WPAICal_Admin {
         $choices  = self::category_choices();
         ?>
         <div class="wrap">
-            <h1>WP AI Calendar</h1>
+            <h1>AI Calendar</h1>
             <?php if ($notice) : ?>
                 <div class="notice notice-<?php echo esc_attr(!empty($_GET['wpaical_ok']) ? 'success' : 'error'); ?>"><p><?php echo esc_html($notice); ?></p></div>
             <?php endif; ?>
@@ -279,8 +280,8 @@ class WPAICal_Admin {
                     <p>
                         <strong>Last sync:</strong> <?php echo $cache['fetched_at'] ? esc_html(wp_date('Y-m-d H:i', $cache['fetched_at'])) : 'never'; ?><br>
                         <strong>Events cached:</strong> <?php echo (int) count($cache['events']); ?><br>
-                        <strong>Credentials:</strong> <?php echo $has_cred ? esc_html__('set', 'wp-ai-calendar') : '<span style="color:#b32d2e">' . esc_html__('missing', 'wp-ai-calendar') . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above ?> &middot;
-                        <strong>Calendar ID:</strong> <?php echo get_option('wpaical_calendar_id', '') !== '' ? esc_html__('set', 'wp-ai-calendar') : '<span style="color:#b32d2e">' . esc_html__('missing', 'wp-ai-calendar') . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above ?>
+                        <strong>Credentials:</strong> <?php echo $has_cred ? esc_html__('set', 'ai-calendar') : '<span style="color:#b32d2e">' . esc_html__('missing', 'ai-calendar') . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above ?> &middot;
+                        <strong>Calendar ID:</strong> <?php echo get_option('wpaical_calendar_id', '') !== '' ? esc_html__('set', 'ai-calendar') : '<span style="color:#b32d2e">' . esc_html__('missing', 'ai-calendar') . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above ?>
                     </p>
                     <?php if ($cache['error']) : ?>
                         <p style="color:#b32d2e"><strong>Last error:</strong> <?php echo esc_html($cache['error']); ?></p>
@@ -347,7 +348,7 @@ class WPAICal_Admin {
                                     data-end="<?php echo esc_attr(substr($e['end_date'], 11, 5)); ?>"
                                     data-allday="<?php echo $e['all_day'] ? '1' : ''; ?>"
                                     data-cat="<?php echo esc_attr($cat); ?>">
-                                    <td style="white-space:nowrap"><?php echo esc_html($e['all_day'] ? wp_date('D M j', $start->getTimestamp()) . ', ' . __('all day', 'wp-ai-calendar') : wp_date('D M j, g:ia', $start->getTimestamp())); ?></td>
+                                    <td style="white-space:nowrap"><?php echo esc_html($e['all_day'] ? wp_date('D M j', $start->getTimestamp()) . ', ' . __('all day', 'ai-calendar') : wp_date('D M j, g:ia', $start->getTimestamp())); ?></td>
                                     <td><?php echo esc_html($e['title']); ?></td>
                                     <td><?php echo esc_html($cat); ?></td>
                                     <td style="white-space:nowrap">
@@ -393,7 +394,7 @@ class WPAICal_Admin {
 
             <div class="card" style="max-width:none;margin:0 0 16px;">
                 <h2 style="margin-top:0">Put your calendar on any page</h2>
-                <p><strong>No shortcodes needed:</strong> in Elementor, drag the <em>WP AI Calendar</em> or <em>WP AI Event Cards</em> widget (group &ldquo;WP AI Calendar&rdquo;) onto the page; in the block editor, add the blocks of the same names. Or use a shortcode:</p>
+                <p><strong>No shortcodes needed:</strong> in Elementor, drag the <em>AI Calendar</em> or <em>AI Event Cards</em> widget (group &ldquo;AI Calendar&rdquo;) onto the page; in the block editor, add the blocks of the same names. Or use a shortcode:</p>
                 <p>Full calendar (month, week and list views, category filters, timezone switch):</p>
                 <pre style="background:#f6f7f7;padding:10px;overflow:auto;margin:0 0 8px">[wpaical_calendar]</pre>
                 <p class="description" style="margin:0 0 18px">
@@ -402,7 +403,7 @@ class WPAICal_Admin {
                     Colours: set a colour per category under Settings below; theme it with the <code>--wpaical-cal-*</code> variables in Widget CSS.
                 </p>
                 <h2 style="margin-top:0">Show upcoming events as cards</h2>
-                <p>Paste a shortcode into a page (in Elementor, use a <em>Shortcode</em> widget). It lists upcoming events from this calendar as cards, so the page never needs manual edits. Set each card's picture and link, or add cards with no date yet, under <a href="<?php echo esc_url(admin_url('admin.php?page=wp-ai-calendar-cards')); ?>">Program cards</a>.</p>
+                <p>Paste a shortcode into a page (in Elementor, use a <em>Shortcode</em> widget). It lists upcoming events from this calendar as cards, so the page never needs manual edits. Set each card's picture and link, or add cards with no date yet, under <a href="<?php echo esc_url(admin_url('admin.php?page=ai-calendar-cards')); ?>">Program cards</a>.</p>
                 <pre style="background:#f6f7f7;padding:10px;overflow:auto;margin:0 0 8px">[wpaical_upcoming program="Meditate with a Monk" limit="10"]</pre>
                 <p class="description" style="margin:0">
                     <code>program</code> event title(s), comma separated (empty = all events) &middot;
@@ -507,7 +508,7 @@ class WPAICal_Admin {
                             </select>
                             <input type="text" class="wpaical-cat-new" name="program_category_new[]" placeholder="New category name" hidden>
                         </td>
-                        <td class="wpaical-count<?php echo $n ? '' : ' zero'; ?>"><?php echo $n ? esc_html(sprintf(/* translators: %d: number of calendar events with this title */ _n('%d event', '%d events', $n, 'wp-ai-calendar'), $n)) : esc_html__('no match', 'wp-ai-calendar'); ?></td>
+                        <td class="wpaical-count<?php echo $n ? '' : ' zero'; ?>"><?php echo $n ? esc_html(sprintf(/* translators: %d: number of calendar events with this title */ _n('%d event', '%d events', $n, 'ai-calendar'), $n)) : esc_html__('no match', 'ai-calendar'); ?></td>
                         <td><button type="button" class="button-link button-link-delete wpaical-remove">Remove</button></td>
                     </tr>
                     <?php

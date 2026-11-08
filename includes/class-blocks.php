@@ -2,7 +2,7 @@
 defined('ABSPATH') || exit;
 
 /**
- * WordPress block editor (Gutenberg) blocks: "WP AI Calendar" and "WP AI Event Cards".
+ * WordPress block editor (Gutenberg) blocks: "AI Calendar" and "AI Event Cards".
  * Rendered on the server by the same code as the shortcodes; the editor shows a live server-side preview.
  */
 class WPAICal_Blocks {

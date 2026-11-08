@@ -1,4 +1,4 @@
-/* WP AI Calendar: re-run the widgets' scripts when Elementor (re)renders them in the editor. */
+/* AI Calendar: re-run the widgets' scripts when Elementor (re)renders them in the editor. */
 (function ($) {
   'use strict';
   $(window).on('elementor/frontend/init', function () {

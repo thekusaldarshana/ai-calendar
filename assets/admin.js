@@ -1,4 +1,4 @@
-/* WP AI Calendar admin: programs table, quick add, quick edit. */
+/* AI Calendar admin: programs table, quick add, quick edit. */
 (function () {
   'use strict';
   var NEW = '__new__';

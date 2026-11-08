@@ -18,7 +18,7 @@ function wpaical_el_list($value) {
 
 class WPAICal_El_Upcoming extends Widget_Base {
     public function get_name() { return 'wpaical_upcoming'; }
-    public function get_title() { return 'WP AI Event Cards'; }
+    public function get_title() { return 'AI Event Cards'; }
     public function get_icon() { return 'eicon-posts-grid'; }
     public function get_categories() { return ['wpaical']; }
     public function get_keywords() { return ['events', 'calendar', 'cards', 'upcoming', 'program']; }
@@ -59,16 +59,18 @@ class WPAICal_El_Upcoming extends Widget_Base {
     protected function render() {
         $s = $this->get_settings_for_display();
         $program = trim(wpaical_el_list($s['program']) . ',' . ($s['program_custom'] ?? ''), ',');
-        echo WPAICal_Widget::render([ // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside render()
+        // phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped inside render()
+        echo WPAICal_Widget::render([
             'program' => $program, 'match' => $s['match'], 'category' => $s['category'], 'limit' => $s['limit'], 'days' => $s['days'],
             'series' => $s['series'], 'heading' => $s['heading'], 'lead' => $s['lead'], 'button' => $s['button'], 'empty' => $s['empty'],
         ]);
+        // phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
     }
 }
 
 class WPAICal_El_Calendar extends Widget_Base {
     public function get_name() { return 'wpaical_calendar'; }
-    public function get_title() { return 'WP AI Calendar'; }
+    public function get_title() { return 'AI Calendar'; }
     public function get_icon() { return 'eicon-calendar'; }
     public function get_categories() { return ['wpaical']; }
     public function get_keywords() { return ['events', 'calendar', 'month', 'schedule']; }
@@ -109,11 +111,13 @@ class WPAICal_El_Calendar extends Widget_Base {
     protected function render() {
         $s = $this->get_settings_for_display();
         $labels = preg_replace('/\r\n|\r|\n/', ',', (string) ($s['labels'] ?? ''));
-        echo WPAICal_Calendar::render([ // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside render()
+        // phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped inside render()
+        echo WPAICal_Calendar::render([
             'views' => wpaical_el_list($s['views']) ?: 'month', 'default_view' => $s['default_view'], 'program' => wpaical_el_list($s['program']),
             'categories' => wpaical_el_list($s['categories']), 'legend' => $s['legend'] ?: 'no', 'timezone_toggle' => $s['timezone_toggle'] ?: 'no',
             'new_tab' => $s['new_tab'] ?: 'no', 'week_start' => $s['week_start'], 'chips' => $s['chips'], 'eyebrow' => $s['eyebrow'],
             'title' => $s['title'], 'labels' => $labels,
         ]);
+        // phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
     }
 }

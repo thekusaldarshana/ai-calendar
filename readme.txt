@@ -1,10 +1,10 @@
-=== WP AI Calendar ===
+=== AI Calendar ===
 Contributors: kusaldarshana
 Tags: calendar, events, google calendar, rest api, mcp
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.1.13
+Stable tag: 0.1.14
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -12,7 +12,7 @@ Use Google Calendar as your events source of truth: synced to WordPress, with a 
 
 == Description ==
 
-Edit your events in Google Calendar, where recurrence, exceptions and mobile apps already work well. WP AI Calendar syncs them into WordPress and publishes them wherever you need them.
+Edit your events in Google Calendar, where recurrence, exceptions and mobile apps already work well. AI Calendar syncs them into WordPress and publishes them wherever you need them.
 
 * **Google Calendar is the source of truth.** Repeating events, one-off events, single-date exceptions: all managed in Google.
 * **Cached, fast, resilient.** A scheduled sync stores events locally, so visitors never wait on Google, and a Google outage only means slightly stale data.
@@ -59,9 +59,13 @@ Every 5 minutes, and immediately after any change made through the plugin.
 
 == Changelog ==
 
+= 0.1.14 =
+* Renamed to AI Calendar (slug ai-calendar). Settings, shortcodes and API routes are unchanged. Plugin Check clean-ups.
+
 = 0.1.13 =
 * Fix: calendar failed to load on plain permalinks; PHP 7.4 fatal in the Elementor editor; Program cards links with special characters; UTC-offset site timezones; keyboard focus after redraw.
 * Readme: Elementor widgets and blocks documented.
+
 = 0.1.12 =
 * Calendar buttons keep their colours on hover and focus even when a theme restyles all buttons (no more theme-coloured category chips after a click). New --wpaical-cal-chip-hover-bg and --wpaical-cal-chip-hover-color variables set the category chips' hover colour.
 
@@ -69,14 +73,14 @@ Every 5 minutes, and immediately after any change made through the plugin.
 * Fix: the day pop-up's close button is now centred and keeps its colour even when a theme styles all buttons (padding, hover and focus colours).
 
 = 0.1.10 =
-* Renamed the Elementor widgets and editor blocks to "WP AI Calendar" and "WP AI Event Cards" so they are not confused with other calendar plugins' widgets.
+* Renamed the Elementor widgets and editor blocks to "AI Calendar" and "AI Event Cards" so they are not confused with other calendar plugins' widgets.
 
 = 0.1.9 =
 * Elementor widgets no longer load their CSS/JS on every page; assets load only where a widget is used (and in the editor preview).
 * Calendar inherits the theme's line height and text colour (closer match to a hand-built design); new --wpaical-cal-chip-dot variable.
 
 = 0.1.8 =
-* Drag-and-drop widgets: "Events Calendar" and "Upcoming Events (cards)" for Elementor (group "WP AI Calendar" in the widget panel, with colour, font and layout controls), and the same two blocks for the WordPress block editor. They render exactly what the shortcodes render.
+* Drag-and-drop widgets: "Events Calendar" and "Upcoming Events (cards)" for Elementor (group "AI Calendar" in the widget panel, with colour, font and layout controls), and the same two blocks for the WordPress block editor. They render exactly what the shortcodes render.
 * The calendar now mirrors a hand-built design exactly: control layout, fonts (separate heading font), spacing, links in a new tab, renamed category labels, and category colours as real CSS rules you can override.
 * Styles and scripts are registered once, so page builders can load them in their live previews.
 
@@ -122,6 +126,9 @@ Every 5 minutes, and immediately after any change made through the plugin.
 * Initial release.
 
 == Upgrade Notice ==
+
+= 0.1.14 =
+The plugin is now called AI Calendar and lives in the ai-calendar folder. Install it as a new plugin and deactivate the old one; settings are kept.
 
 = 0.1.13 =
 Fixes the calendar not loading on sites with plain permalinks, a PHP 7.4 error in the Elementor editor, and keyboard focus handling.
