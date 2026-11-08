@@ -8,11 +8,13 @@ defined('ABSPATH') || exit;
  */
 class WPAICal_Google_Client {
     const SCOPE = 'https://www.googleapis.com/auth/calendar';
+    /** Fixed on purpose: the "token_uri" inside an uploaded key file is never trusted (it could point anywhere). */
+    const TOKEN_URI = 'https://oauth2.googleapis.com/token';
     const API   = 'https://www.googleapis.com/calendar/v3';
 
     private $account;
 
-    /** @param array $account Decoded service-account JSON (needs client_email, private_key, token_uri). */
+    /** @param array $account Decoded service-account JSON (needs client_email and private_key). */
     public function __construct(array $account) {
         $this->account = $account;
     }
@@ -21,7 +23,7 @@ class WPAICal_Google_Client {
     public static function from_settings() {
         $json = defined('WPAICAL_SERVICE_ACCOUNT_JSON') ? WPAICAL_SERVICE_ACCOUNT_JSON : get_option('wpaical_service_account', '');
         $acct = json_decode((string) $json, true);
-        if (!is_array($acct) || empty($acct['client_email']) || empty($acct['private_key'])) {
+        if (!is_array($acct) || empty($acct['client_email']) || empty($acct['private_key']) || !is_string($acct['client_email']) || !is_string($acct['private_key'])) {
             return new WP_Error('wpaical_no_credentials', 'Google service-account credentials are missing or invalid.');
         }
         return new self($acct);
@@ -38,7 +40,7 @@ class WPAICal_Google_Client {
             return $cached;
         }
 
-        $token_uri = !empty($this->account['token_uri']) ? $this->account['token_uri'] : 'https://oauth2.googleapis.com/token';
+        $token_uri = self::TOKEN_URI;
         $now       = time();
         $header    = self::b64url(wp_json_encode(['alg' => 'RS256', 'typ' => 'JWT']));
         $claims    = self::b64url(wp_json_encode([
@@ -49,8 +51,12 @@ class WPAICal_Google_Client {
             'exp'   => $now + 3600,
         ]));
 
+        if (!function_exists('openssl_sign')) {
+            return new WP_Error('wpaical_openssl', 'The PHP OpenSSL extension is required to sign Google auth requests.');
+        }
+        $key = openssl_pkey_get_private($this->account['private_key']);
         $signature = '';
-        $ok = openssl_sign($header . '.' . $claims, $signature, $this->account['private_key'], OPENSSL_ALGO_SHA256);
+        $ok = $key && openssl_sign($header . '.' . $claims, $signature, $key, OPENSSL_ALGO_SHA256);
         if (!$ok) {
             return new WP_Error('wpaical_sign', 'Could not sign the Google auth request (check the private key).');
         }
@@ -71,12 +77,13 @@ class WPAICal_Google_Client {
             return new WP_Error('wpaical_token', 'Google refused the credentials: ' . $msg);
         }
         // Expire our cached copy a bit before Google does.
-        set_transient($cache_key, $body['access_token'], max(60, (int) $body['expires_in'] - 120));
+        $ttl = isset($body['expires_in']) ? (int) $body['expires_in'] : 3600;
+        set_transient($cache_key, $body['access_token'], max(60, $ttl - 120));
         return $body['access_token'];
     }
 
     /** @return array|WP_Error Decoded JSON response. */
-    public function request($method, $path, array $query = [], $body = null) {
+    public function request($method, $path, array $query = [], $body = null, $retried = false) {
         $token = $this->token();
         if (is_wp_error($token)) {
             return $token;
@@ -95,7 +102,16 @@ class WPAICal_Google_Client {
             return $resp;
         }
         $code = wp_remote_retrieve_response_code($resp);
-        $data = json_decode(wp_remote_retrieve_body($resp), true);
+        if ($code === 401 && !$retried) { // cached token rejected (key rotated/revoked): get a fresh one and retry once
+            delete_transient('wpaical_gtoken');
+            return $this->request($method, $path, $query, $body, true);
+        }
+        $raw  = wp_remote_retrieve_body($resp);
+        $data = json_decode($raw, true);
+        if ($code < 400 && $code !== 204 && trim((string) $raw) !== '' && !is_array($data)) {
+            // A 2xx that is not JSON (captive portal, proxy page) must never be mistaken for "no events".
+            return new WP_Error('wpaical_api', 'Google Calendar API returned an unexpected, non-JSON response.', ['status' => $code]);
+        }
         if ($code >= 400) {
             $msg = isset($data['error']['message']) ? $data['error']['message'] : 'HTTP ' . $code;
             return new WP_Error('wpaical_api', 'Google Calendar API: ' . $msg, ['status' => $code]);
@@ -149,22 +165,38 @@ class WPAICal_Google_Client {
         return $this->request('POST', '/calendars/' . rawurlencode($calendar_id) . '/events', [], $event);
     }
 
+    /** Google event ids are letters, digits and a few separators; "." and ".." would walk up the URL path. */
+    public static function valid_id($id) {
+        return is_string($id) && preg_match('/^[A-Za-z0-9_@.\-]{1,1024}$/', $id) && $id !== '.' && $id !== '..';
+    }
+
+    /** @return string|false Request path for one event, or false for an invalid id. */
     private function event_path($calendar_id, $event_id) {
+        if (!self::valid_id($event_id)) {
+            return false;
+        }
         return '/calendars/' . rawurlencode($calendar_id) . '/events/' . rawurlencode($event_id);
     }
 
+    private static function bad_id() {
+        return new WP_Error('wpaical_bad_id', 'That is not a valid event id.');
+    }
+
     public function get_event($calendar_id, $event_id) {
-        return $this->request('GET', $this->event_path($calendar_id, $event_id));
+        $path = $this->event_path($calendar_id, $event_id);
+        return $path === false ? self::bad_id() : $this->request('GET', $path);
     }
 
     /** Partial update. On a recurring *instance* id this changes only that occurrence; on the series id, the whole series. */
     public function patch_event($calendar_id, $event_id, array $fields) {
-        return $this->request('PATCH', $this->event_path($calendar_id, $event_id), [], $fields);
+        $path = $this->event_path($calendar_id, $event_id);
+        return $path === false ? self::bad_id() : $this->request('PATCH', $path, [], $fields);
     }
 
     /** Delete an event. On a recurring instance id this cancels just that occurrence. */
     public function delete_event($calendar_id, $event_id) {
-        return $this->request('DELETE', $this->event_path($calendar_id, $event_id));
+        $path = $this->event_path($calendar_id, $event_id);
+        return $path === false ? self::bad_id() : $this->request('DELETE', $path);
     }
 
     /** Recurring series definitions (not expanded), i.e. events that carry a recurrence rule. */
@@ -192,7 +224,11 @@ class WPAICal_Google_Client {
 
     /** Occurrences of one recurring series inside a time window. */
     public function list_instances($calendar_id, $event_id, $time_min, $time_max) {
-        $data = $this->request('GET', $this->event_path($calendar_id, $event_id) . '/instances', [
+        $path = $this->event_path($calendar_id, $event_id);
+        if ($path === false) {
+            return self::bad_id();
+        }
+        $data = $this->request('GET', $path . '/instances', [
             'timeMin' => $time_min, 'timeMax' => $time_max, 'maxResults' => 250,
         ]);
         return is_wp_error($data) ? $data : (isset($data['items']) ? $data['items'] : []);

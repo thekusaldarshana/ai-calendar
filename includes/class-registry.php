@@ -25,8 +25,13 @@ class WPAICal_Registry {
 
     /** @return array<string,array{url:string,category:string}> keyed by lower-cased title. */
     public static function all() {
+        static $memo = []; // parsed once per distinct option value (resolve() runs once per event)
+        $raw = (string) get_option(self::OPTION, '');
+        if (isset($memo[$raw])) {
+            return $memo[$raw];
+        }
         $map = [];
-        foreach (preg_split('/\r\n|\r|\n/', (string) get_option(self::OPTION, '')) as $line) {
+        foreach (preg_split('/\r\n|\r|\n/', $raw) as $line) {
             $parts = array_map('trim', explode('|', $line));
             if (count($parts) < 2 || $parts[0] === '') {
                 continue;
@@ -36,6 +41,7 @@ class WPAICal_Registry {
                 'category' => isset($parts[2]) ? $parts[2] : '',
             ];
         }
+        $memo[$raw] = $map;
         return $map;
     }
 
@@ -86,7 +92,8 @@ class WPAICal_Registry {
     }
 
     public static function key($title) {
-        return strtolower(trim(html_entity_decode((string) $title, ENT_QUOTES)));
+        $t = trim(html_entity_decode((string) $title, ENT_QUOTES));
+        return function_exists('mb_strtolower') ? mb_strtolower($t) : strtolower($t);
     }
 
     private static function absolute_url($value) {

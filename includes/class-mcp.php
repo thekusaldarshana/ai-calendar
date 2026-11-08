@@ -12,7 +12,8 @@ defined('ABSPATH') || exit;
  */
 class WPAICal_MCP {
     const PROTOCOL = '2025-03-26';
-    const CAP      = 'edit_others_posts'; // Editor and above.
+    const CAP      = 'edit_others_posts'; // Default: Editor and above. Filter with "wpaical_mcp_capability".
+    const MAX_BATCH = 20;
 
     public static function init() {
         add_action('rest_api_init', function () {
@@ -20,7 +21,7 @@ class WPAICal_MCP {
                 'methods'             => ['GET', 'POST', 'DELETE'],
                 'callback'            => [__CLASS__, 'handle'],
                 'permission_callback' => function () {
-                    return current_user_can(self::CAP)
+                    return current_user_can(apply_filters('wpaical_mcp_capability', self::CAP))
                         ? true
                         : new WP_Error('wpaical_mcp_forbidden', 'Authentication required (Editor role or higher).', ['status' => is_user_logged_in() ? 403 : 401]);
                 },
@@ -41,9 +42,20 @@ class WPAICal_MCP {
         }
         // JSON-RPC batch support.
         $is_batch  = array_keys($msg) === range(0, count($msg) - 1) && $msg !== [];
+        if ($is_batch && count($msg) > self::MAX_BATCH) {
+            return self::rpc_error(null, -32600, 'Batch too large (max ' . self::MAX_BATCH . ' requests).');
+        }
         $responses = [];
         foreach ($is_batch ? $msg : [$msg] as $one) {
-            $r = self::dispatch($one);
+            if (!is_array($one)) {
+                $responses[] = self::rpc_error(null, -32600, 'Invalid Request');
+                continue;
+            }
+            try {
+                $r = self::dispatch($one);
+            } catch (Throwable $e) { // bad input must become a JSON-RPC error, never a PHP fatal
+                $r = self::rpc_error(array_key_exists('id', $one) ? $one['id'] : null, -32603, 'Internal error: ' . $e->getMessage());
+            }
             if ($r !== null) {
                 $responses[] = $r;
             }
@@ -104,6 +116,11 @@ class WPAICal_MCP {
     private static function call_tool($id, array $params) {
         $name = isset($params['name']) ? $params['name'] : '';
         $args = isset($params['arguments']) && is_array($params['arguments']) ? $params['arguments'] : [];
+        foreach ($args as $k => $v) { // every argument is a scalar string, except the recurrence list
+            if ($k === 'recurrence' ? !is_array($v) : !is_scalar($v)) {
+                return self::rpc_error($id, -32602, 'Invalid argument type for "' . $k . '".');
+            }
+        }
         $defs = self::tool_definitions();
         $known = array_column($defs, 'name');
         if (!in_array($name, $known, true)) {
@@ -148,9 +165,9 @@ class WPAICal_MCP {
             ['name' => 'cancel_occurrence', 'description' => 'Cancel one date of a recurring series by series id and date (YYYY-MM-DD), without needing the occurrence id.',
              'inputSchema' => $obj(['series_id' => $str, 'date' => ['type' => 'string', 'description' => 'YYYY-MM-DD']], ['series_id', 'date']), 'annotations' => ['destructiveHint' => true]],
             ['name' => 'list_programs', 'description' => 'List the program registry: event title -> program page and category.', 'inputSchema' => $obj([]), 'annotations' => $ro],
-            ['name' => 'set_program', 'description' => 'Add or replace a registry entry so every event with this title links to a page and gets a category.',
+            ['name' => 'set_program', 'description' => 'Add or replace a registry entry so every event with this title links to a page and gets a category. Requires an administrator.',
              'inputSchema' => $obj(['title' => $str, 'page' => $str, 'category' => $str], ['title', 'page'])],
-            ['name' => 'delete_program', 'description' => 'Remove a registry entry by title.', 'inputSchema' => $obj(['title' => $str], ['title']), 'annotations' => ['destructiveHint' => true]],
+            ['name' => 'delete_program', 'description' => 'Remove a registry entry by title. Requires an administrator.', 'inputSchema' => $obj(['title' => $str], ['title']), 'annotations' => ['destructiveHint' => true]],
             ['name' => 'sync_now', 'description' => 'Refresh the public events cache from Google Calendar immediately (write tools already do this).', 'inputSchema' => $obj([])],
             ['name' => 'status', 'description' => 'Show configuration and last-sync status.', 'inputSchema' => $obj([]), 'annotations' => $ro],
         ];
@@ -170,7 +187,7 @@ class WPAICal_MCP {
     /** Site timezone as an IANA name (Google needs one). Empty if WordPress is set to a UTC offset. */
     private static function tzname() {
         $name = wp_timezone_string();
-        return strpos($name, '/') !== false ? $name : '';
+        return ($name !== '' && !preg_match('/^[+-]/', $name)) ? $name : '';
     }
 
     /** Server instructions shown to the agent: the site's own text (Settings) or a generic default. */
@@ -196,11 +213,12 @@ class WPAICal_MCP {
     private static function parse_time($value, $is_end = false) {
         $value = trim((string) $value);
         $tz    = wp_timezone();
-        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
+        if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $value, $dm) && checkdate((int) $dm[2], (int) $dm[3], (int) $dm[1])) {
             return [$value, true];
         }
-        $d = DateTimeImmutable::createFromFormat('Y-m-d H:i', str_replace('T', ' ', substr($value, 0, 16)), $tz);
-        if (!$d) {
+        $d      = DateTimeImmutable::createFromFormat('Y-m-d H:i', str_replace('T', ' ', substr($value, 0, 16)), $tz);
+        $errors = DateTimeImmutable::getLastErrors();
+        if (!$d || (is_array($errors) && ($errors['warning_count'] > 0 || $errors['error_count'] > 0))) {
             return new WP_Error('wpaical_mcp_time', 'Bad time "' . $value . '". Use "YYYY-MM-DD HH:MM" or "YYYY-MM-DD".');
         }
         return [$d->format('Y-m-d\TH:i:s'), false];
@@ -235,11 +253,15 @@ class WPAICal_MCP {
 
     private static function check_recurrence($lines) {
         foreach ((array) $lines as $l) {
-            if (!is_string($l) || !preg_match('/^(RRULE|EXRULE|RDATE|EXDATE)[:;]/i', trim($l))) {
+            if (!is_string($l) || !preg_match('/^(RRULE|EXRULE|RDATE|EXDATE)[:;][^\r\n]+$/i', trim($l))) {
                 return new WP_Error('wpaical_mcp_rrule', 'Each recurrence line must start with RRULE:, RDATE:, EXDATE:, got: ' . (is_string($l) ? $l : gettype($l)));
             }
         }
         return array_values(array_map('trim', (array) $lines));
+    }
+
+    private static function is_date($v) {
+        return preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $v, $m) && checkdate((int) $m[2], (int) $m[3], (int) $m[1]);
     }
 
     private static function refresh() {
@@ -271,7 +293,12 @@ class WPAICal_MCP {
         if (is_wp_error($c)) {
             return $c;
         }
-        $tz    = wp_timezone();
+        $tz = wp_timezone();
+        foreach (['start_date', 'end_date'] as $k) {
+            if (!empty($a[$k]) && !self::is_date((string) $a[$k])) {
+                return new WP_Error('wpaical_mcp_arg', $k . ' must be a real date, YYYY-MM-DD.');
+            }
+        }
         $start = new DateTimeImmutable(!empty($a['start_date']) ? $a['start_date'] : 'today', $tz);
         $end   = !empty($a['end_date']) ? (new DateTimeImmutable($a['end_date'], $tz))->modify('+1 day') : $start->modify('+30 days');
         $items = $c[0]->list_events($c[1], $start->format(DATE_RFC3339), $end->format(DATE_RFC3339));
@@ -313,6 +340,8 @@ class WPAICal_MCP {
 
     /** Compose the description Google stores: user text + our page:/category: directive lines. */
     private static function compose_description($text, $page, $category) {
+        $page     = is_string($page) ? trim(preg_replace('/[\r\n]+/', ' ', $page)) : '';
+        $category = is_string($category) ? trim(preg_replace('/[\r\n]+/', ' ', $category)) : '';
         $lines = [];
         if ($page !== '' && $page !== null) {
             $lines[] = 'page: ' . $page;
@@ -436,8 +465,8 @@ class WPAICal_MCP {
             return $c;
         }
         $date = (string) ($a['date'] ?? '');
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
-            return new WP_Error('wpaical_mcp_arg', 'date must be YYYY-MM-DD.');
+        if (!self::is_date($date)) {
+            return new WP_Error('wpaical_mcp_arg', 'date must be a real date, YYYY-MM-DD.');
         }
         $tz  = wp_timezone();
         $day = new DateTimeImmutable($date, $tz);
@@ -445,8 +474,13 @@ class WPAICal_MCP {
         if (is_wp_error($inst)) {
             return $inst;
         }
-        $inst = array_values(array_filter($inst, function ($g) {
-            return empty($g['status']) || $g['status'] !== 'cancelled';
+        // The window returns anything overlapping the day; keep only occurrences that START on that day.
+        $inst = array_values(array_filter($inst, function ($g) use ($tz, $date) {
+            if (!empty($g['status']) && $g['status'] === 'cancelled') {
+                return false;
+            }
+            $s = isset($g['start']['date']) ? $g['start']['date'] : (isset($g['start']['dateTime']) ? (new DateTimeImmutable($g['start']['dateTime']))->setTimezone($tz)->format('Y-m-d') : '');
+            return $s === $date;
         }));
         if (!$inst) {
             return new WP_Error('wpaical_mcp_none', 'That series has no occurrence on ' . $date . '.');
@@ -468,6 +502,9 @@ class WPAICal_MCP {
     }
 
     private static function tool_set_program($a) {
+        if (!current_user_can('manage_options')) {
+            return new WP_Error('wpaical_mcp_forbidden', 'Changing the program registry requires an administrator.');
+        }
         $title = trim((string) ($a['title'] ?? ''));
         $page  = trim((string) ($a['page'] ?? ''));
         $cat   = trim((string) ($a['category'] ?? ''));
@@ -484,6 +521,9 @@ class WPAICal_MCP {
     }
 
     private static function tool_delete_program($a) {
+        if (!current_user_can('manage_options')) {
+            return new WP_Error('wpaical_mcp_forbidden', 'Changing the program registry requires an administrator.');
+        }
         $removed = WPAICal_Registry::remove((string) ($a['title'] ?? ''));
         self::refresh();
         return ['removed' => $removed];

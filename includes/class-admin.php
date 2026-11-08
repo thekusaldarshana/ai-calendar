@@ -53,13 +53,17 @@ class WPAICal_Admin {
         update_option('wpaical_instructions', sanitize_textarea_field(wp_unslash($_POST['instructions'] ?? '')));
 
         // Only touch the credentials if a new JSON was pasted (the box is never pre-filled).
-        $json = trim(wp_unslash($_POST['service_account'] ?? ''));
+        $json = isset($_POST['service_account']) && is_string($_POST['service_account']) ? trim(wp_unslash($_POST['service_account'])) : '';
         if (!empty($_FILES['service_account_file']['tmp_name']) && is_uploaded_file($_FILES['service_account_file']['tmp_name'])) {
+            $size = isset($_FILES['service_account_file']['size']) ? (int) $_FILES['service_account_file']['size'] : 0;
+            if ($size > 65536) { // a service-account key is ~2 KB
+                self::back('That file is too large to be a service-account key.', false);
+            }
             $json = trim((string) file_get_contents($_FILES['service_account_file']['tmp_name']));
         }
         if ($json !== '') {
             $acct = json_decode($json, true);
-            if (!is_array($acct) || empty($acct['client_email']) || empty($acct['private_key'])) {
+            if (!is_array($acct) || empty($acct['client_email']) || empty($acct['private_key']) || !is_string($acct['client_email']) || !is_string($acct['private_key'])) {
                 self::back('That is not a valid service-account JSON file.', false);
             }
             update_option('wpaical_service_account', $json, false);
@@ -99,7 +103,12 @@ class WPAICal_Admin {
     private static function page_choices() {
         $out = [];
         foreach (get_pages(['post_status' => 'publish', 'number' => 500, 'sort_column' => 'post_title']) as $pg) {
-            $out[wp_make_link_relative(get_permalink($pg))] = $pg->post_title;
+            $path = wp_make_link_relative(get_permalink($pg));
+            $home = rtrim((string) wp_parse_url(home_url(), PHP_URL_PATH), '/'); // e.g. "/blog" for a subdirectory install
+            if ($home !== '' && strpos($path, $home . '/') === 0) {
+                $path = substr($path, strlen($home));
+            }
+            $out[$path] = $pg->post_title;
         }
         return $out;
     }
@@ -155,7 +164,7 @@ class WPAICal_Admin {
     }
 
     private static function valid_date($v) {
-        return is_string($v) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $v) && strtotime($v) !== false ? $v : '';
+        return is_string($v) && preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $v, $m) && checkdate((int) $m[2], (int) $m[3], (int) $m[1]) ? $v : '';
     }
 
     private static function valid_time($v) {
@@ -206,7 +215,7 @@ class WPAICal_Admin {
         if (!$ev) {
             self::back('That event is no longer in the cache. Sync and try again.', false);
         }
-        $series = !empty($ev['series_id']) && ($_POST['scope'] ?? '') === 'series';
+        $series = !empty($ev['series_id']) && sanitize_key(wp_unslash($_POST['scope'] ?? '')) === 'series';
         $args   = ['event_id' => $series ? $ev['series_id'] : $id];
 
         $cat = self::posted_category('category', 'category_new');
@@ -219,7 +228,7 @@ class WPAICal_Admin {
             $date = self::valid_date(sanitize_text_field(wp_unslash($_POST['date'] ?? '')));
             $st   = self::valid_time(sanitize_text_field(wp_unslash($_POST['start_time'] ?? '')));
             $en   = self::valid_time(sanitize_text_field(wp_unslash($_POST['end_time'] ?? '')));
-            if ($date === '' || $st === '' || $en === '') {
+            if (($date === '' && !$series) || $st === '' || $en === '') {
                 self::back('Enter a valid date, start time and end time.', false);
             }
             $o_date = substr($ev['start_date'], 0, 10);
@@ -265,7 +274,7 @@ class WPAICal_Admin {
         <div class="wrap">
             <h1>WP AI Calendar</h1>
             <?php if ($notice) : ?>
-                <div class="notice notice-<?php echo !empty($_GET['wpaical_ok']) ? 'success' : 'error'; ?>"><p><?php echo esc_html($notice); ?></p></div>
+                <div class="notice notice-<?php echo esc_attr(!empty($_GET['wpaical_ok']) ? 'success' : 'error'); ?>"><p><?php echo esc_html($notice); ?></p></div>
             <?php endif; ?>
 
             <div style="display:flex;flex-wrap:wrap;gap:16px;margin:16px 0;">
@@ -274,8 +283,8 @@ class WPAICal_Admin {
                     <p>
                         <strong>Last sync:</strong> <?php echo $cache['fetched_at'] ? esc_html(wp_date('Y-m-d H:i', $cache['fetched_at'])) : 'never'; ?><br>
                         <strong>Events cached:</strong> <?php echo (int) count($cache['events']); ?><br>
-                        <strong>Credentials:</strong> <?php echo $has_cred ? 'set' : '<span style="color:#b32d2e">missing</span>'; ?> &middot;
-                        <strong>Calendar ID:</strong> <?php echo get_option('wpaical_calendar_id', '') !== '' ? 'set' : '<span style="color:#b32d2e">missing</span>'; ?>
+                        <strong>Credentials:</strong> <?php echo $has_cred ? esc_html__('set', 'wp-ai-calendar') : '<span style="color:#b32d2e">' . esc_html__('missing', 'wp-ai-calendar') . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above ?> &middot;
+                        <strong>Calendar ID:</strong> <?php echo get_option('wpaical_calendar_id', '') !== '' ? esc_html__('set', 'wp-ai-calendar') : '<span style="color:#b32d2e">' . esc_html__('missing', 'wp-ai-calendar') . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above ?>
                     </p>
                     <?php if ($cache['error']) : ?>
                         <p style="color:#b32d2e"><strong>Last error:</strong> <?php echo esc_html($cache['error']); ?></p>
@@ -342,7 +351,7 @@ class WPAICal_Admin {
                                     data-end="<?php echo esc_attr(substr($e['end_date'], 11, 5)); ?>"
                                     data-allday="<?php echo $e['all_day'] ? '1' : ''; ?>"
                                     data-cat="<?php echo esc_attr($cat); ?>">
-                                    <td style="white-space:nowrap"><?php echo esc_html($e['all_day'] ? $start->format('D M j') . ', all day' : $start->format('D M j, g:ia')); ?></td>
+                                    <td style="white-space:nowrap"><?php echo esc_html($e['all_day'] ? wp_date('D M j', $start->getTimestamp()) . ', ' . __('all day', 'wp-ai-calendar') : wp_date('D M j, g:ia', $start->getTimestamp())); ?></td>
                                     <td><?php echo esc_html($e['title']); ?></td>
                                     <td><?php echo esc_html($cat); ?></td>
                                     <td style="white-space:nowrap">
@@ -462,7 +471,7 @@ class WPAICal_Admin {
                             </select>
                             <input type="text" class="wpaical-cat-new" name="program_category_new[]" placeholder="New category name" hidden>
                         </td>
-                        <td class="wpaical-count<?php echo $n ? '' : ' zero'; ?>"><?php echo $n ? esc_html(sprintf(_n('%d event', '%d events', $n, 'wp-ai-calendar'), $n)) : esc_html__('no match', 'wp-ai-calendar'); ?></td>
+                        <td class="wpaical-count<?php echo $n ? '' : ' zero'; ?>"><?php echo $n ? esc_html(sprintf(/* translators: %d: number of calendar events with this title */ _n('%d event', '%d events', $n, 'wp-ai-calendar'), $n)) : esc_html__('no match', 'wp-ai-calendar'); ?></td>
                         <td><button type="button" class="button-link button-link-delete wpaical-remove">Remove</button></td>
                     </tr>
                     <?php

@@ -13,10 +13,6 @@ class WPAICal_Sync {
     const DAYS_AHEAD   = 365;
 
     public static function init() {
-        add_filter('cron_schedules', function ($schedules) {
-            $schedules['wpaical_5min'] = ['interval' => 300, 'display' => 'Every 5 minutes'];
-            return $schedules;
-        });
         add_action(self::CRON_HOOK, [__CLASS__, 'run']);
         // Safety net in case activation scheduling was missed.
         if (!wp_next_scheduled(self::CRON_HOOK)) {
@@ -86,15 +82,26 @@ class WPAICal_Sync {
         if (!empty($g['status']) && $g['status'] === 'cancelled') {
             return null;
         }
-        if (empty($g['start'])) {
+        // Private/confidential events must never reach the public feed.
+        if (!empty($g['visibility']) && in_array($g['visibility'], ['private', 'confidential'], true)) {
             return null;
         }
+        if (empty($g['start']) || empty($g['id'])) {
+            return null;
+        }
+        try {
+            return self::build_event($g, $tz);
+        } catch (Exception $e) { // one malformed item must not abort a whole sync
+            return null;
+        }
+    }
 
+    private static function build_event(array $g, DateTimeZone $tz) {
         $all_day = isset($g['start']['date']);
         if ($all_day) {
             // Google's all-day end date is exclusive; make it the last second of the final day.
             $start = new DateTimeImmutable($g['start']['date'] . ' 00:00:00', $tz);
-            $end   = (new DateTimeImmutable($g['end']['date'] . ' 00:00:00', $tz))->modify('-1 second');
+            $end   = (new DateTimeImmutable((isset($g['end']['date']) ? $g['end']['date'] : $g['start']['date']) . ' 00:00:00', $tz))->modify('-1 second');
         } else {
             $start = (new DateTimeImmutable($g['start']['dateTime']))->setTimezone($tz);
             $end   = isset($g['end']['dateTime'])
@@ -102,7 +109,7 @@ class WPAICal_Sync {
                 : $start->modify('+1 hour');
         }
 
-        $title       = isset($g['summary']) ? $g['summary'] : '(untitled)';
+        $title       = isset($g['summary']) ? sanitize_text_field($g['summary']) : '(untitled)';
         $description = isset($g['description']) ? wp_strip_all_tags($g['description']) : '';
         $resolved    = WPAICal_Registry::resolve($title, $description);
         $cat         = $resolved['category'];
@@ -114,7 +121,7 @@ class WPAICal_Sync {
             'start_date' => $start->format('Y-m-d H:i:s'),
             'end_date'   => $end->format('Y-m-d H:i:s'),
             'all_day'    => $all_day,
-            'location'   => isset($g['location']) ? $g['location'] : '',
+            'location'   => isset($g['location']) ? sanitize_text_field($g['location']) : '',
             'url'        => $resolved['url'],
             'source'     => 'gcal',
             'categories' => $cat !== '' ? [['name' => $cat, 'slug' => sanitize_title($cat)]] : [],

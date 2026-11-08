@@ -3,7 +3,7 @@
  * Plugin Name: WP AI Calendar
  * Description: Uses a Google Calendar as the source of truth for your events: syncs it, serves a JSON API for websites and signage, and exposes an MCP server so AI agents can manage events.
  * Plugin URI:  https://github.com/thekusaldarshana/wp-ai-calendar
- * Version:     0.1.3
+ * Version:     0.1.4
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author:      Kusal Darshana
@@ -17,7 +17,7 @@
 
 defined('ABSPATH') || exit;
 
-define('WPAICAL_VERSION', '0.1.3');
+define('WPAICAL_VERSION', '0.1.4');
 define('WPAICAL_DIR', plugin_dir_path(__FILE__));
 
 require_once WPAICAL_DIR . 'includes/class-google-client.php';
@@ -26,6 +26,12 @@ require_once WPAICAL_DIR . 'includes/class-sync.php';
 require_once WPAICAL_DIR . 'includes/class-rest.php';
 require_once WPAICAL_DIR . 'includes/class-mcp.php';
 require_once WPAICAL_DIR . 'includes/class-admin.php';
+
+// Registered at file load, not on plugins_loaded: the activation hook below needs this schedule to exist.
+add_filter('cron_schedules', function ($schedules) {
+    $schedules['wpaical_5min'] = ['interval' => 300, 'display' => __('Every 5 minutes', 'wp-ai-calendar')];
+    return $schedules;
+});
 
 add_action('plugins_loaded', function () {
     WPAICal_Sync::init();
@@ -36,7 +42,7 @@ add_action('plugins_loaded', function () {
 
 // "Settings" shortcut on the Plugins screen.
 add_filter('plugin_action_links_' . plugin_basename(__FILE__), function ($links) {
-    array_unshift($links, '<a href="' . esc_url(WPAICal_Admin::page_url()) . '">Settings</a>');
+    array_unshift($links, '<a href="' . esc_url(WPAICal_Admin::page_url()) . '">' . esc_html__('Settings', 'wp-ai-calendar') . '</a>');
     return $links;
 });
 

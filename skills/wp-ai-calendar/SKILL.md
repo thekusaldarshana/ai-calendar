@@ -1,7 +1,7 @@
 ---
 name: wp-ai-calendar
 description: Manage a website's events through the WP AI Calendar MCP server (Google Calendar is the source of truth). Use when asked what events are scheduled, or to add, change, move, cancel or delete an event or recurring series, or to link an event to a program page or category.
-version: 0.1.1
+version: 0.1.4
 license: GPL-2.0-or-later
 ---
 
@@ -21,7 +21,7 @@ The site's events live in **Google Calendar**. The WP AI Calendar plugin caches 
 | `update_event` | Change fields. Series id = every occurrence; occurrence id = that date only. |
 | `cancel_occurrence` | Skip one date of a series (`series_id` + `date`). |
 | `delete_event` | Delete an event or a whole series. Cannot be undone from here. |
-| `list_programs` / `set_program` / `delete_program` | The registry that maps an event title to a program page and category. |
+| `list_programs` / `set_program` / `delete_program` | The registry that maps an event title to a program page and category. Changing it needs an administrator account. |
 | `sync_now` | Refresh the cache. Write tools already do this. |
 
 ## Rules

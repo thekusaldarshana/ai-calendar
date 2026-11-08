@@ -24,7 +24,7 @@ class WPAICal_Rest {
     public static function events(WP_REST_Request $request) {
         $tz    = wp_timezone();
         $start = self::parse($request->get_param('start_date'), $tz) ?: new DateTimeImmutable('today', $tz);
-        $end   = self::parse($request->get_param('end_date'), $tz) ?: $start->modify('+30 days');
+        $end   = self::parse($request->get_param('end_date'), $tz, true) ?: $start->modify('+30 days');
 
         $cache = WPAICal_Sync::cache();
         $out   = [];
@@ -48,12 +48,20 @@ class WPAICal_Rest {
         return $response;
     }
 
-    private static function parse($value, DateTimeZone $tz) {
-        if (!$value) {
+    /**
+     * Parse a date or datetime in the site timezone. A date-only value used as an END means
+     * "through the end of that day"; values carrying their own offset are converted to site time.
+     */
+    private static function parse($value, DateTimeZone $tz, $is_end = false) {
+        if (!is_string($value) || $value === '') {
             return null;
         }
         try {
-            return new DateTimeImmutable($value, $tz);
+            $d = (new DateTimeImmutable($value, $tz))->setTimezone($tz);
+            if ($is_end && preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
+                $d = $d->setTime(23, 59, 59);
+            }
+            return $d;
         } catch (Exception $e) {
             return null;
         }

@@ -2,6 +2,25 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.1.4] - 2026-11-08
+Security and reliability release following an independent review.
+### Security
+- Private/confidential Google events are never published through the public API.
+- Event ids are validated before building Google API URLs (no dot-segment traversal).
+- The OAuth token endpoint is fixed to Google's; `token_uri` from an uploaded key is ignored.
+- MCP: argument types, real dates and line breaks are validated; failures return JSON-RPC errors instead of PHP fatals; batches are capped at 20; changing the program registry requires `manage_options`; the endpoint capability is filterable (`wpaical_mcp_capability`).
+- Event titles and locations are sanitised before they are cached and served.
+### Fixed
+- Quick edit of a whole series failed for timed events.
+- A non-JSON 2xx reply from Google emptied the cache; now an error. A rejected cached token is refreshed and retried once.
+- The 5-minute cron schedule is registered at load, so activation schedules the sync.
+- `UTC` site timezone no longer blocks timed writes; invalid dates (Feb 30) are rejected instead of rolling over.
+- REST `end_date` (date only) now means end of that day; offset datetimes are converted to site time.
+- Subdirectory installs no longer double the path prefix in program links; `cancel_occurrence` only cancels occurrences that start on the given date.
+- Registry parsing is memoised per request.
+### Packaging
+- `tools/` and `README.md` are no longer in the release zip. Expanded readme (tags, FAQ, installation, external-services disclosure, upgrade notice).
+
 ## [0.1.3] - 2026-11-08
 ### Added
 - `timezone` field in the `/wpaical/v1/events` response (the site's IANA timezone), so displays can compute "now" in site time.

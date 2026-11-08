@@ -27,13 +27,13 @@ def token(acct):
         os.unlink(t.name)
     body = urllib.parse.urlencode({'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer',
                                    'assertion': (unsigned + b'.' + b64(sig)).decode()}).encode()
-    return json.load(urllib.request.urlopen(urllib.request.Request(acct['token_uri'], body)))['access_token']
+    return json.load(urllib.request.urlopen(urllib.request.Request('https://oauth2.googleapis.com/token', body), timeout=30))['access_token']
 
 def call(tok, method, path, body=None):
     req = urllib.request.Request(API + path, method=method, headers={'Authorization': 'Bearer ' + tok, 'Content-Type': 'application/json'},
                                  data=json.dumps(body).encode() if body is not None else None)
     try:
-        return json.load(urllib.request.urlopen(req))
+        return json.load(urllib.request.urlopen(req, timeout=30))
     except urllib.error.HTTPError as e:
         raise SystemExit(f'Google API error {e.code}: {json.load(e)["error"]["message"]}')
 
@@ -44,7 +44,7 @@ def main():
     a = ap.parse_args()
     skip = {s for s in a.skip.split(',') if s}
     tok = token(json.load(open(os.path.expanduser(a.key))))
-    cal = urllib.parse.quote(a.calendar_id)
+    cal = urllib.parse.quote(a.calendar_id, safe='')
     for ev in json.load(open(a.events)):
         key = ev['extendedProperties']['private'][a.key_property]
         if key in skip:
