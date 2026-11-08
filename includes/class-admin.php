@@ -14,6 +14,14 @@ class WPAICal_Admin {
         add_action('admin_menu', function () {
             add_menu_page('WP AI Calendar', 'AI Calendar', self::CAP, self::SLUG, [__CLASS__, 'page'], 'dashicons-calendar-alt', 58);
         });
+        add_action('admin_enqueue_scripts', function ($hook) {
+            if ($hook !== 'toplevel_page_' . self::SLUG) {
+                return;
+            }
+            $main = WPAICAL_DIR . 'wp-ai-calendar.php';
+            wp_enqueue_style('wpaical-admin', plugins_url('assets/admin.css', $main), [], WPAICAL_VERSION);
+            wp_enqueue_script('wpaical-admin', plugins_url('assets/admin.js', $main), [], WPAICAL_VERSION, true);
+        });
         add_action('admin_post_wpaical_save', [__CLASS__, 'save']);
         add_action('admin_post_wpaical_sync', [__CLASS__, 'sync_now']);
     }
@@ -37,8 +45,9 @@ class WPAICal_Admin {
         self::guard('wpaical_save');
 
         update_option('wpaical_calendar_id', sanitize_text_field(wp_unslash($_POST['calendar_id'] ?? '')));
-        update_option(WPAICal_Registry::OPTION, sanitize_textarea_field(wp_unslash($_POST['programs'] ?? '')));
-        update_option(WPAICal_Registry::CATEGORIES_OPTION, sanitize_text_field(wp_unslash($_POST['categories'] ?? '')));
+        $cats = array_values(array_filter(array_map('trim', explode(',', sanitize_text_field(wp_unslash($_POST['categories'] ?? '')))), 'strlen'));
+        self::save_programs($cats);
+        update_option(WPAICal_Registry::CATEGORIES_OPTION, implode(', ', $cats));
         update_option('wpaical_instructions', sanitize_textarea_field(wp_unslash($_POST['instructions'] ?? '')));
 
         // Only touch the credentials if a new JSON was pasted (the box is never pre-filled).
@@ -55,6 +64,42 @@ class WPAICal_Admin {
             delete_transient('wpaical_gtoken');
         }
         self::back('Settings saved.');
+    }
+
+    /** Rebuild the program registry from the table fields. New categories are added to $cats (by reference). */
+    private static function save_programs(array &$cats) {
+        $titles = isset($_POST['program_title']) ? (array) wp_unslash($_POST['program_title']) : [];
+        $pages  = isset($_POST['program_page']) ? (array) wp_unslash($_POST['program_page']) : [];
+        $picks  = isset($_POST['program_category']) ? (array) wp_unslash($_POST['program_category']) : [];
+        $news   = isset($_POST['program_category_new']) ? (array) wp_unslash($_POST['program_category_new']) : [];
+        $restrict = !empty($cats); // an empty list means categories are free-form: don't start restricting
+        $seen  = [];
+        $lines = [];
+        foreach ($titles as $i => $title) {
+            $title = trim(str_replace('|', ' ', sanitize_text_field($title)));
+            if ($title === '' || isset($seen[WPAICal_Registry::key($title)])) {
+                continue;
+            }
+            $seen[WPAICal_Registry::key($title)] = true;
+            $page = trim(str_replace('|', '', sanitize_text_field($pages[$i] ?? '')));
+            $pick = (string) ($picks[$i] ?? '');
+            $cat  = $pick === '__new__' ? sanitize_text_field($news[$i] ?? '') : sanitize_text_field($pick);
+            $cat  = trim(str_replace(['|', ','], '', $cat));
+            if ($cat !== '' && $restrict && !in_array(strtolower($cat), array_map('strtolower', $cats), true)) {
+                $cats[] = $cat;
+            }
+            $lines[] = $title . ' | ' . $page . ' | ' . $cat;
+        }
+        update_option(WPAICal_Registry::OPTION, implode("\n", $lines));
+    }
+
+    /** Published pages as [path => title] for the page picker. */
+    private static function page_choices() {
+        $out = [];
+        foreach (get_pages(['post_status' => 'publish', 'number' => 500, 'sort_column' => 'post_title']) as $pg) {
+            $out[wp_make_link_relative(get_permalink($pg))] = $pg->post_title;
+        }
+        return $out;
     }
 
     public static function sync_now() {
@@ -155,18 +200,70 @@ class WPAICal_Admin {
                             <p class="description">Optional. Extra context sent to AI agents that connect through the MCP endpoint (who you are, naming rules, anything they should know).</p>
                         </td>
                     </tr>
-                    <tr>
-                        <th scope="row"><label for="programs">Programs</label></th>
-                        <td>
-                            <textarea id="programs" name="programs" rows="12" class="large-text code"><?php echo esc_textarea(get_option(WPAICal_Registry::OPTION, '')); ?></textarea>
-                            <p class="description">
-                                One per line: <code>Event title | /page-path-or-full-url | Category</code><br>
-                                Title must match the Google Calendar event title. Category must be one of the categories listed above (if you set any).<br>
-                                A one-off event can override this by putting <code>page: /some-page/</code> and/or <code>category: Special</code> on their own lines in its Google Calendar description.
-                            </p>
-                        </td>
-                    </tr>
                 </table>
+
+                <h2>Programs</h2>
+                <p class="description">Give each recurring event a program page and a category. The title must match the Google Calendar event title exactly. A one-off event can override this with <code>page: /some-page/</code> and/or <code>category: Special</code> on their own lines in its Google Calendar description.</p>
+                <?php
+                $rows   = WPAICal_Registry::rows();
+                $pages  = self::page_choices();
+                $cats   = WPAICal_Registry::categories();
+                foreach ($rows as $r) {
+                    if ($r['category'] !== '' && !in_array(strtolower($r['category']), array_map('strtolower', $cats), true)) {
+                        $cats[] = $r['category'];
+                    }
+                }
+                $counts = [];
+                $titles = [];
+                foreach ($cache['events'] as $ev) {
+                    $k = WPAICal_Registry::key($ev['title']);
+                    $counts[$k] = ($counts[$k] ?? 0) + 1;
+                    $titles[$ev['title']] = true;
+                }
+                $row_html = function ($r) use ($cats, $counts) {
+                    $n = $counts[WPAICal_Registry::key($r['title'])] ?? 0;
+                    ob_start(); ?>
+                    <tr>
+                        <td><input type="text" class="wpaical-title" name="program_title[]" list="wpaical-titles" value="<?php echo esc_attr($r['title']); ?>" placeholder="Event title"></td>
+                        <td><input type="text" name="program_page[]" list="wpaical-pages" value="<?php echo esc_attr($r['page']); ?>" placeholder="Search pages or paste a URL"></td>
+                        <td>
+                            <select class="wpaical-cat-select" name="program_category[]">
+                                <option value=""<?php selected($r['category'], ''); ?>>&mdash; none &mdash;</option>
+                                <?php foreach ($cats as $c) : ?>
+                                    <option value="<?php echo esc_attr($c); ?>"<?php selected(strtolower($r['category']), strtolower($c)); ?>><?php echo esc_html($c); ?></option>
+                                <?php endforeach; ?>
+                                <option value="__new__">+ New category&hellip;</option>
+                            </select>
+                            <input type="text" class="wpaical-cat-new" name="program_category_new[]" placeholder="New category name" hidden>
+                        </td>
+                        <td class="wpaical-count<?php echo $n ? '' : ' zero'; ?>"><?php echo $n ? esc_html(sprintf(_n('%d event', '%d events', $n, 'wp-ai-calendar'), $n)) : esc_html__('no match', 'wp-ai-calendar'); ?></td>
+                        <td><button type="button" class="button-link button-link-delete wpaical-remove">Remove</button></td>
+                    </tr>
+                    <?php
+                    return ob_get_clean();
+                };
+                ?>
+                <datalist id="wpaical-pages">
+                    <?php foreach ($pages as $path => $title) : ?>
+                        <option value="<?php echo esc_attr($path); ?>"><?php echo esc_html($title); ?></option>
+                    <?php endforeach; ?>
+                </datalist>
+                <datalist id="wpaical-titles">
+                    <?php foreach (array_keys($titles) as $title) : ?>
+                        <option value="<?php echo esc_attr($title); ?>"></option>
+                    <?php endforeach; ?>
+                </datalist>
+                <table id="wpaical-programs" class="widefat striped">
+                    <thead><tr>
+                        <th class="col-title">Event title</th><th class="col-page">Program page</th><th class="col-cat">Category</th><th class="col-n">In calendar</th><th class="col-x"></th>
+                    </tr></thead>
+                    <tbody>
+                        <?php foreach ($rows as $r) { echo $row_html($r); } // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside the closure ?>
+                    </tbody>
+                </table>
+                <p id="wpaical-empty" class="description" hidden>No programs yet.</p>
+                <template id="wpaical-row-template"><?php echo $row_html(['title' => '', 'page' => '', 'category' => '']); // phpcs:ignore WordPress.Security.EscapeOutput ?></template>
+                <p><button type="button" class="button" id="wpaical-add-row">+ Add program</button></p>
                 <?php submit_button('Save settings'); ?>
             </form>
 

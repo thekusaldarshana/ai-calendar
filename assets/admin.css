@@ -1,0 +1,11 @@
+#wpaical-programs { max-width: 1100px; }
+#wpaical-programs td { vertical-align: middle; }
+#wpaical-programs input[type=text] { width: 100%; }
+#wpaical-programs .wpaical-cat-new { margin-top: 4px; }
+#wpaical-programs .wpaical-count { color: #646970; white-space: nowrap; }
+#wpaical-programs .wpaical-count.zero { color: #b32d2e; }
+#wpaical-programs th.col-title { width: 30%; }
+#wpaical-programs th.col-page { width: 34%; }
+#wpaical-programs th.col-cat { width: 20%; }
+#wpaical-programs th.col-n { width: 9%; }
+#wpaical-programs th.col-x { width: 7%; }
