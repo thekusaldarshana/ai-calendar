@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.1.6] - 2026-11-08
+### Added
+- **Program cards** admin screen: choose a program, view its upcoming dates, edit each date's picture (media library) and link, for one date or the whole series (written to Google Calendar as `image:` / `page:` lines). Live preview and copyable shortcode.
+- Cards without a date ("Coming soon", message editable) stored in WordPress only; shown by `[wpaical_upcoming]` for the matching program.
+### Changed
+- Card markup/CSS reworked: "Program – Venue" titles split into a label and a heading; a "Next" tag marks the first date per title.
+
 ## [0.1.5] - 2026-11-08
 ### Added
 - `[wpaical_upcoming]` shortcode: server-rendered cards of upcoming events, filterable by program title (`program`, `match`), `category`, `series`; `limit`, `days`, and text options. Visitors in another timezone get a "Your time / Event time" switch.

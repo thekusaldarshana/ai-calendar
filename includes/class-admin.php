@@ -13,9 +13,10 @@ class WPAICal_Admin {
     public static function init() {
         add_action('admin_menu', function () {
             add_menu_page('WP AI Calendar', 'AI Calendar', self::CAP, self::SLUG, [__CLASS__, 'page'], 'dashicons-calendar-alt', 58);
+            add_submenu_page(self::SLUG, 'WP AI Calendar', 'Dashboard', self::CAP, self::SLUG, [__CLASS__, 'page']);
         });
         add_action('admin_enqueue_scripts', function ($hook) {
-            if ($hook !== 'toplevel_page_' . self::SLUG) {
+            if (!isset($_GET['page']) || sanitize_key(wp_unslash($_GET['page'])) !== self::SLUG) { // phpcs:ignore WordPress.Security.NonceVerification -- read-only page check
                 return;
             }
             $main = WPAICAL_DIR . 'wp-ai-calendar.php';
@@ -398,7 +399,7 @@ class WPAICal_Admin {
 
             <div class="card" style="max-width:none;margin:0 0 16px;">
                 <h2 style="margin-top:0">Show upcoming events on any page</h2>
-                <p>Paste a shortcode into a page (in Elementor, use a <em>Shortcode</em> widget). It lists upcoming events from this calendar as cards, so the page never needs manual edits.</p>
+                <p>Paste a shortcode into a page (in Elementor, use a <em>Shortcode</em> widget). It lists upcoming events from this calendar as cards, so the page never needs manual edits. Set each card's picture and link, or add cards with no date yet, under <a href="<?php echo esc_url(admin_url('admin.php?page=wp-ai-calendar-cards')); ?>">Program cards</a>.</p>
                 <pre style="background:#f6f7f7;padding:10px;overflow:auto;margin:0 0 8px">[wpaical_upcoming program="Meditate with a Monk" limit="10"]</pre>
                 <p class="description" style="margin:0">
                     <code>program</code> event title(s), comma separated (empty = all events) &middot;

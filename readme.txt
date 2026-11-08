@@ -4,7 +4,7 @@ Tags: calendar, events, google calendar, rest api, mcp
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.1.5
+Stable tag: 0.1.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -54,6 +54,11 @@ No. The plugin itself never contacts an AI provider. If you connect an AI client
 Every 5 minutes, and immediately after any change made through the plugin.
 
 == Changelog ==
+
+= 0.1.6 =
+* New "Program cards" screen (AI Calendar menu): pick a program, see its upcoming dates, and change each date's picture and link (this date only, or the whole series). Changes are saved to Google Calendar. Includes a live preview and the shortcode to paste.
+* New cards without a date: announce a place or session before its dates are set; they show as "Coming soon" and never touch your calendar.
+* The upcoming-events cards were restyled for a cleaner card layout ("Program - Venue" titles become a label plus a heading).
 
 = 0.1.5 =
 * New [wpaical_upcoming] shortcode: upcoming events from your calendar as cards, optionally filtered to one program (title), category or series. Server-rendered, with an automatic "your time / event time" switch for visitors in another timezone.

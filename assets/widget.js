@@ -17,7 +17,7 @@
 
   document.querySelectorAll('.wpaical-up').forEach(function (root) {
     var site = root.getAttribute('data-tz');
-    var cards = root.querySelectorAll('.wpaical-card[data-start]');
+    var cards = root.querySelectorAll('.wpaical-card[data-start]'); // date-less cards have no data-start and are left alone
     if (!site || !cards.length || viewer === site) { return; } // same zone: nothing to convert
 
     var mode = 'viewer';
@@ -38,14 +38,13 @@
       cards.forEach(function (c) {
         var s = new Date(c.getAttribute('data-start'));
         var e = new Date(c.getAttribute('data-end'));
-        var dateEl = c.querySelector('.wpaical-date');
-        var timeEl = c.querySelector('.wpaical-time');
-        if (c.getAttribute('data-allday')) { return; } // all-day events keep their own date
-        dateEl.textContent = fmt(s, tz, { weekday: 'short', month: 'short', day: 'numeric' });
+        var dtEl = c.querySelector('.wpaical-dt');
+        if (!dtEl || c.getAttribute('data-allday')) { return; } // all-day events keep their own date
+        var day = fmt(s, tz, { weekday: 'short', month: 'short', day: 'numeric' });
         var a = fmt(s, tz, { hour: 'numeric', minute: '2-digit' });
         var b = fmt(e, tz, { hour: 'numeric', minute: '2-digit' });
         var same = a.slice(-2) === b.slice(-2);
-        timeEl.textContent = (same ? meridiem(a) : a) + '–' + b + ' ' + abbr(s, tz);
+        dtEl.textContent = day + ' \u00b7 ' + (same ? meridiem(a) : a) + '\u2013' + b + ' ' + abbr(s, tz);
       });
     }
 
