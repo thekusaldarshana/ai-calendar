@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.1.12] - 2026-11-08
+### Fixed
+- Navigation, Today, view-toggle and category buttons are immune to theme-wide `button:hover/:focus/:active` colours.
+### Added
+- `--wpaical-cal-chip-hover-bg` / `--wpaical-cal-chip-hover-color` for the category chips' hover state.
+
 ## [0.1.11] - 2026-11-08
 ### Fixed
 - Day dialog close button: centred ×, immune to theme-wide `button` padding and hover/focus colours; new `--wpaical-cal-close-bg` / `--wpaical-cal-close-color` variables.

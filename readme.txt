@@ -4,7 +4,7 @@ Tags: calendar, events, google calendar, rest api, mcp
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.1.11
+Stable tag: 0.1.12
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -54,6 +54,9 @@ No. The plugin itself never contacts an AI provider. If you connect an AI client
 Every 5 minutes, and immediately after any change made through the plugin.
 
 == Changelog ==
+
+= 0.1.12 =
+* Calendar buttons keep their colours on hover and focus even when a theme restyles all buttons (no more theme-coloured category chips after a click). New --wpaical-cal-chip-hover-bg and --wpaical-cal-chip-hover-color variables set the category chips' hover colour.
 
 = 0.1.11 =
 * Fix: the day pop-up's close button is now centred and keeps its colour even when a theme styles all buttons (padding, hover and focus colours).
