@@ -9,3 +9,7 @@
 #wpaical-programs th.col-cat { width: 20%; }
 #wpaical-programs th.col-n { width: 9%; }
 #wpaical-programs th.col-x { width: 7%; }
+.wpaical-quick .wpaical-qa-time { width: 7.5em; }
+.wpaical-qe-row td { background: #f0f6fc; padding: 12px 16px; }
+.wpaical-qe-fields label { margin-right: 14px; display: inline-block; }
+.wpaical-qe-fields .wpaical-cat-new { margin-left: 4px; }

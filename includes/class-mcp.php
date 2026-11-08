@@ -90,6 +90,17 @@ class WPAICal_MCP {
         return $id === null && $code === -32700 ? new WP_REST_Response($body, 400) : $body;
     }
 
+    /**
+     * Run one tool from PHP (the admin dashboard uses this so it shares the MCP's validation and
+     * Google calls). Only an allow-list is exposed. Returns the tool's array, or a WP_Error.
+     */
+    public static function execute($name, array $args = []) {
+        if (!in_array($name, ['get_event', 'create_event', 'update_event'], true)) {
+            return new WP_Error('wpaical_mcp_arg', 'Tool not available here: ' . $name);
+        }
+        return call_user_func([__CLASS__, 'tool_' . $name], $args);
+    }
+
     private static function call_tool($id, array $params) {
         $name = isset($params['name']) ? $params['name'] : '';
         $args = isset($params['arguments']) && is_array($params['arguments']) ? $params['arguments'] : [];

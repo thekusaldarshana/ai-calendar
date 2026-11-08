@@ -24,6 +24,8 @@ class WPAICal_Admin {
         });
         add_action('admin_post_wpaical_save', [__CLASS__, 'save']);
         add_action('admin_post_wpaical_sync', [__CLASS__, 'sync_now']);
+        add_action('admin_post_wpaical_quick_add', [__CLASS__, 'quick_add']);
+        add_action('admin_post_wpaical_quick_edit', [__CLASS__, 'quick_edit']);
     }
 
     private static function guard($action) {
@@ -102,6 +104,149 @@ class WPAICal_Admin {
         return $out;
     }
 
+    /** "Open Google Calendar" link: opens the calendar (and offers to add it if the user hasn't yet). */
+    private static function gcal_open_url() {
+        $cal = (string) get_option('wpaical_calendar_id', '');
+        return $cal === '' ? 'https://calendar.google.com/calendar/' : 'https://calendar.google.com/calendar/u/0/r?cid=' . rtrim(base64_encode($cal), '=');
+    }
+
+    /** Deep link to Google's own editor for one event or occurrence id. */
+    private static function gcal_edit_url($event_id) {
+        $cal = (string) get_option('wpaical_calendar_id', '');
+        return $cal === '' ? '' : 'https://calendar.google.com/calendar/u/0/r/eventedit/' . rtrim(base64_encode($event_id . ' ' . $cal), '=');
+    }
+
+    /** All category names to offer: the configured list, the programs' categories, and those on cached events. */
+    private static function category_choices() {
+        $cats = WPAICal_Registry::categories();
+        $extra = [];
+        foreach (WPAICal_Registry::rows() as $r) {
+            $extra[] = $r['category'];
+        }
+        foreach (WPAICal_Sync::cache()['events'] as $e) {
+            if (!empty($e['categories'][0]['name'])) {
+                $extra[] = $e['categories'][0]['name'];
+            }
+        }
+        foreach ($extra as $c) {
+            if ($c !== '' && !in_array(strtolower($c), array_map('strtolower', $cats), true)) {
+                $cats[] = $c;
+            }
+        }
+        return $cats;
+    }
+
+    /** Category from a select + "new" text field. Returns null when nothing was chosen. Registers new names if a list is in use. */
+    private static function posted_category($pick_key, $new_key) {
+        $pick = sanitize_text_field(wp_unslash($_POST[$pick_key] ?? ''));
+        if ($pick === '__new__') {
+            $name = trim(str_replace(['|', ','], '', sanitize_text_field(wp_unslash($_POST[$new_key] ?? ''))));
+            if ($name === '') {
+                return null;
+            }
+            $list = WPAICal_Registry::categories();
+            if ($list && !in_array(strtolower($name), array_map('strtolower', $list), true)) {
+                $list[] = $name;
+                update_option(WPAICal_Registry::CATEGORIES_OPTION, implode(', ', $list));
+            }
+            return $name;
+        }
+        return $pick === '' ? null : $pick;
+    }
+
+    private static function valid_date($v) {
+        return is_string($v) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $v) && strtotime($v) !== false ? $v : '';
+    }
+
+    private static function valid_time($v) {
+        return is_string($v) && preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $v) ? $v : '';
+    }
+
+    public static function quick_add() {
+        self::guard('wpaical_quick_add');
+        $title = trim(sanitize_text_field(wp_unslash($_POST['title'] ?? '')));
+        $date  = self::valid_date(sanitize_text_field(wp_unslash($_POST['date'] ?? '')));
+        $all   = !empty($_POST['all_day']);
+        $st    = self::valid_time(sanitize_text_field(wp_unslash($_POST['start_time'] ?? '')));
+        $en    = self::valid_time(sanitize_text_field(wp_unslash($_POST['end_time'] ?? '')));
+        if ($title === '' || $date === '') {
+            self::back('Quick add needs a title and a date.', false);
+        }
+        if (!$all && ($st === '' || $en === '')) {
+            self::back('Quick add needs a start and end time (or tick All day).', false);
+        }
+        $args = ['title' => $title, 'start' => $all ? $date : "$date $st", 'end' => $all ? $date : "$date $en"];
+        $loc  = trim(sanitize_text_field(wp_unslash($_POST['location'] ?? '')));
+        if ($loc !== '') {
+            $args['location'] = $loc;
+        }
+        $cat = self::posted_category('category', 'category_new');
+        if ($cat !== null) {
+            $args['category'] = $cat;
+        }
+        $r = WPAICal_MCP::execute('create_event', $args);
+        if (is_wp_error($r)) {
+            self::back($r->get_error_message(), false);
+        }
+        $known = WPAICal_Registry::all();
+        $tip   = isset($known[WPAICal_Registry::key($title)]) ? '' : ' Tip: add "' . $title . '" under Programs to link it to a page.';
+        self::back('Added "' . $title . '" on ' . $date . '.' . $tip);
+    }
+
+    public static function quick_edit() {
+        self::guard('wpaical_quick_edit');
+        $id = sanitize_text_field(wp_unslash($_POST['event_id'] ?? ''));
+        $ev = null;
+        foreach (WPAICal_Sync::cache()['events'] as $e) {
+            if ($e['id'] === $id) {
+                $ev = $e;
+                break;
+            }
+        }
+        if (!$ev) {
+            self::back('That event is no longer in the cache. Sync and try again.', false);
+        }
+        $series = !empty($ev['series_id']) && ($_POST['scope'] ?? '') === 'series';
+        $args   = ['event_id' => $series ? $ev['series_id'] : $id];
+
+        $cat = self::posted_category('category', 'category_new');
+        $cur = !empty($ev['categories'][0]['name']) ? $ev['categories'][0]['name'] : '';
+        if ($cat !== null && strcasecmp($cat, $cur) !== 0) {
+            $args['category'] = $cat;
+        }
+
+        if (empty($ev['all_day'])) { // all-day events: category only here; change dates in Google Calendar
+            $date = self::valid_date(sanitize_text_field(wp_unslash($_POST['date'] ?? '')));
+            $st   = self::valid_time(sanitize_text_field(wp_unslash($_POST['start_time'] ?? '')));
+            $en   = self::valid_time(sanitize_text_field(wp_unslash($_POST['end_time'] ?? '')));
+            if ($date === '' || $st === '' || $en === '') {
+                self::back('Enter a valid date, start time and end time.', false);
+            }
+            $o_date = substr($ev['start_date'], 0, 10);
+            $o_st   = substr($ev['start_date'], 11, 5);
+            $o_en   = substr($ev['end_date'], 11, 5);
+            $span   = (int) round((strtotime(substr($ev['end_date'], 0, 10)) - strtotime($o_date)) / DAY_IN_SECONDS);
+            if ($series) {
+                if ($st !== $o_st || $en !== $o_en) {
+                    $s = WPAICal_MCP::execute('get_event', ['event_id' => $ev['series_id']]);
+                    if (is_wp_error($s)) {
+                        self::back($s->get_error_message(), false);
+                    }
+                    $args['start'] = substr($s['start_date'], 0, 10) . ' ' . $st;
+                    $args['end']   = substr($s['end_date'], 0, 10) . ' ' . $en;
+                }
+            } elseif ($date !== $o_date || $st !== $o_st || $en !== $o_en) {
+                $args['start'] = "$date $st";
+                $args['end']   = gmdate('Y-m-d', strtotime($date) + $span * DAY_IN_SECONDS) . " $en";
+            }
+        }
+        if (count($args) === 1) {
+            self::back('Nothing was changed.');
+        }
+        $r = WPAICal_MCP::execute('update_event', $args);
+        is_wp_error($r) ? self::back($r->get_error_message(), false) : self::back('Updated "' . $ev['title'] . '"' . ($series ? ' (whole series).' : '.'));
+    }
+
     public static function sync_now() {
         self::guard('wpaical_sync');
         $r = WPAICal_Sync::run();
@@ -115,6 +260,7 @@ class WPAICal_Admin {
         $cache    = WPAICal_Sync::cache();
         $has_cred = defined('WPAICAL_SERVICE_ACCOUNT_JSON') || get_option('wpaical_service_account', '') !== '';
         $notice   = isset($_GET['wpaical_notice']) ? sanitize_text_field(wp_unslash($_GET['wpaical_notice'])) : '';
+        $choices  = self::category_choices();
         ?>
         <div class="wrap">
             <h1>WP AI Calendar</h1>
@@ -135,29 +281,108 @@ class WPAICal_Admin {
                         <p style="color:#b32d2e"><strong>Last error:</strong> <?php echo esc_html($cache['error']); ?></p>
                     <?php endif; ?>
                     <p><strong>Public API:</strong><br><code><?php echo esc_html(rest_url('wpaical/v1/events')); ?></code></p>
+                    <p><a class="button button-secondary" href="<?php echo esc_url(self::gcal_open_url()); ?>" target="_blank" rel="noopener noreferrer"><span class="dashicons dashicons-external" style="margin-top:4px"></span> Open Google Calendar</a></p>
                 </div>
                 <div class="card" style="flex:1;min-width:300px;margin:0;">
-                    <h2 style="margin-top:0">Upcoming events</h2>
-                    <?php
-                    $now = wp_date('Y-m-d H:i:s');
-                    $next = array_slice(array_values(array_filter($cache['events'], function ($e) use ($now) {
-                        return $e['end_date'] >= $now;
-                    })), 0, 8);
-                    ?>
-                    <?php if (!$next) : ?>
-                        <p>No upcoming events yet. Save your settings and click <em>Sync now</em>.</p>
-                    <?php else : ?>
-                        <table class="widefat striped"><tbody>
-                        <?php foreach ($next as $e) : ?>
-                            <tr>
-                                <td style="white-space:nowrap"><?php echo esc_html((new DateTimeImmutable($e['start_date'], wp_timezone()))->format('D M j, g:ia')); ?></td>
-                                <td><?php echo esc_html($e['title']); ?></td>
-                                <td><?php echo $e['categories'] ? esc_html($e['categories'][0]['name']) : ''; ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                        </tbody></table>
-                    <?php endif; ?>
+                    <h2 style="margin-top:0">Quick add</h2>
+                    <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="wpaical-quick">
+                        <input type="hidden" name="action" value="wpaical_quick_add">
+                        <?php wp_nonce_field('wpaical_quick_add'); ?>
+                        <p><input type="text" name="title" list="wpaical-titles" class="widefat" placeholder="Event title" required></p>
+                        <p>
+                            <input type="date" name="date" required>
+                            <input type="time" name="start_time" class="wpaical-qa-time"> &ndash; <input type="time" name="end_time" class="wpaical-qa-time">
+                            <label><input type="checkbox" name="all_day" id="wpaical-qa-allday"> All day</label>
+                        </p>
+                        <p><input type="text" name="location" class="widefat" placeholder="Location (optional)"></p>
+                        <p>
+                            <select name="category" class="wpaical-cat-select">
+                                <option value="">Category: from program</option>
+                                <?php foreach ($choices as $c) : ?>
+                                    <option value="<?php echo esc_attr($c); ?>"><?php echo esc_html($c); ?></option>
+                                <?php endforeach; ?>
+                                <option value="__new__">+ New category&hellip;</option>
+                            </select>
+                            <input type="text" name="category_new" class="wpaical-cat-new" placeholder="New category name" hidden>
+                        </p>
+                        <p><button type="submit" class="button button-primary">Add event</button>
+                        <span class="description">One-off events. For repeating events use Google Calendar.</span></p>
+                    </form>
                 </div>
+            </div>
+
+            <?php
+            $now = wp_date('Y-m-d H:i:s');
+            $next = array_slice(array_values(array_filter($cache['events'], function ($e) use ($now) {
+                return $e['end_date'] >= $now;
+            })), 0, 20);
+            ?>
+            <div class="card" style="max-width:none;margin:0 0 16px;">
+                <h2 style="margin-top:0">Upcoming events</h2>
+                <?php if (!$next) : ?>
+                    <p>No upcoming events yet. Save your settings and click <em>Sync now</em>.</p>
+                <?php else : ?>
+                    <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" id="wpaical-qe-form">
+                        <input type="hidden" name="action" value="wpaical_quick_edit">
+                        <?php wp_nonce_field('wpaical_quick_edit'); ?>
+                        <table class="widefat striped" id="wpaical-upcoming">
+                            <thead><tr><th>When</th><th>Event</th><th>Category</th><th></th></tr></thead>
+                            <tbody>
+                            <?php foreach ($next as $e) :
+                                $cat   = $e['categories'] ? $e['categories'][0]['name'] : '';
+                                $start = new DateTimeImmutable($e['start_date'], wp_timezone());
+                                $gurl  = self::gcal_edit_url($e['id']);
+                                ?>
+                                <tr class="wpaical-ev"
+                                    data-id="<?php echo esc_attr($e['id']); ?>"
+                                    data-series="<?php echo esc_attr($e['series_id'] ? '1' : ''); ?>"
+                                    data-title="<?php echo esc_attr($e['title']); ?>"
+                                    data-date="<?php echo esc_attr(substr($e['start_date'], 0, 10)); ?>"
+                                    data-start="<?php echo esc_attr(substr($e['start_date'], 11, 5)); ?>"
+                                    data-end="<?php echo esc_attr(substr($e['end_date'], 11, 5)); ?>"
+                                    data-allday="<?php echo $e['all_day'] ? '1' : ''; ?>"
+                                    data-cat="<?php echo esc_attr($cat); ?>">
+                                    <td style="white-space:nowrap"><?php echo esc_html($e['all_day'] ? $start->format('D M j') . ', all day' : $start->format('D M j, g:ia')); ?></td>
+                                    <td><?php echo esc_html($e['title']); ?></td>
+                                    <td><?php echo esc_html($cat); ?></td>
+                                    <td style="white-space:nowrap">
+                                        <button type="button" class="button-link wpaical-qe-open">Quick edit</button>
+                                        <?php if ($gurl) : ?> &nbsp;|&nbsp; <a href="<?php echo esc_url($gurl); ?>" target="_blank" rel="noopener noreferrer">Edit in Google</a><?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </form>
+                    <template id="wpaical-qe-tpl">
+                        <tr class="wpaical-qe-row"><td colspan="4">
+                            <input type="hidden" name="event_id" value="">
+                            <strong class="wpaical-qe-title"></strong>
+                            <p class="wpaical-qe-fields">
+                                <label>Date <input type="date" name="date"></label>
+                                <label>Start <input type="time" name="start_time"></label>
+                                <label>End <input type="time" name="end_time"></label>
+                                <label>Category
+                                    <select name="category" class="wpaical-cat-select">
+                                        <option value="">&mdash; keep &mdash;</option>
+                                        <?php foreach ($choices as $c) : ?>
+                                            <option value="<?php echo esc_attr($c); ?>"><?php echo esc_html($c); ?></option>
+                                        <?php endforeach; ?>
+                                        <option value="__new__">+ New category&hellip;</option>
+                                    </select>
+                                </label>
+                                <input type="text" name="category_new" class="wpaical-cat-new" placeholder="New category name" hidden>
+                            </p>
+                            <p class="wpaical-qe-scope" hidden>
+                                <label><input type="radio" name="scope" value="occurrence" checked> This date only</label>
+                                &nbsp;
+                                <label><input type="radio" name="scope" value="series"> All dates in the series (time and category)</label>
+                            </p>
+                            <p class="wpaical-qe-note description" hidden>All-day event: only the category can be changed here. Change dates in Google Calendar.</p>
+                            <p><button type="submit" class="button button-primary">Update</button> <button type="button" class="button wpaical-qe-cancel">Cancel</button></p>
+                        </td></tr>
+                    </template>
+                <?php endif; ?>
             </div>
 
             <div class="card" style="max-width:none;margin:0 0 16px;">

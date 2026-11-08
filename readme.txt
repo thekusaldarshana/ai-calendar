@@ -2,7 +2,7 @@
 Contributors: kusaldarshana
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 0.1.1
+Stable tag: 0.1.2
 Tested up to: 6.8
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -25,6 +25,11 @@ Use Google Calendar as the single source of truth for your events. WP AI Calenda
 4. Set Settings -> General -> Timezone to a city (not a UTC offset).
 
 == Changelog ==
+
+= 0.1.2 =
+* Dashboard: "Open Google Calendar" button and an "Edit in Google" link on every upcoming event.
+* Dashboard: Quick add form for one-off events (title, date, time, location, category, all-day).
+* Dashboard: Quick edit for upcoming events: change date, start/end time and category for one date or a whole series.
 
 = 0.1.1 =
 * Admin: Programs are now a table with a page search, a category dropdown that can create new categories, and a count of matching calendar events.
