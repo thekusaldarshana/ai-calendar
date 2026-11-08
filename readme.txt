@@ -4,7 +4,7 @@ Tags: calendar, events, google calendar, rest api, mcp
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.1.8
+Stable tag: 0.1.9
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -54,6 +54,10 @@ No. The plugin itself never contacts an AI provider. If you connect an AI client
 Every 5 minutes, and immediately after any change made through the plugin.
 
 == Changelog ==
+
+= 0.1.9 =
+* Elementor widgets no longer load their CSS/JS on every page; assets load only where a widget is used (and in the editor preview).
+* Calendar inherits the theme's line height and text colour (closer match to a hand-built design); new --wpaical-cal-chip-dot variable.
 
 = 0.1.8 =
 * Drag-and-drop widgets: "Events Calendar" and "Upcoming Events (cards)" for Elementor (group "WP AI Calendar" in the widget panel, with colour, font and layout controls), and the same two blocks for the WordPress block editor. They render exactly what the shortcodes render.

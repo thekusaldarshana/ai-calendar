@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.1.9] - 2026-11-08
+### Fixed
+- Elementor widgets declared their assets sitewide when Elementor's "optimized assets loading" is off; they are now declared only in the editor/preview.
+### Changed
+- Calendar no longer forces `line-height`/base `color` (inherits the theme); `--wpaical-cal-chip-dot` variable for the dot in day chips.
+
 ## [0.1.8] - 2026-11-08
 ### Added
 - Elementor widgets "Events Calendar" and "Upcoming Events (cards)" (category "WP AI Calendar") with content and style controls.

@@ -5,6 +5,12 @@ use Elementor\Controls_Manager;
 use Elementor\Group_Control_Typography;
 use Elementor\Widget_Base;
 
+/** True inside the Elementor editor and its preview, where assets must be declared up front. */
+function wpaical_el_editing() {
+    $p = \Elementor\Plugin::$instance;
+    return ($p->editor && $p->editor->is_edit_mode()) || ($p->preview && $p->preview->is_preview_mode());
+}
+
 /** Join Elementor's SELECT2 array (or a plain string) into the comma list the shortcodes use. */
 function wpaical_el_list($value) {
     return is_array($value) ? implode(',', array_filter($value, 'strlen')) : (string) $value;
@@ -16,8 +22,8 @@ class WPAICal_El_Upcoming extends Widget_Base {
     public function get_icon() { return 'eicon-posts-grid'; }
     public function get_categories() { return ['wpaical']; }
     public function get_keywords() { return ['events', 'calendar', 'cards', 'upcoming', 'program']; }
-    public function get_style_depends() { return ['wpaical-widget']; }
-    public function get_script_depends() { return ['wpaical-widget', 'wpaical-elementor']; }
+    public function get_style_depends() { return wpaical_el_editing() ? ['wpaical-widget'] : []; }
+    public function get_script_depends() { return wpaical_el_editing() ? ['wpaical-widget', 'wpaical-elementor'] : []; }
 
     protected function register_controls() {
         $this->start_controls_section('content', ['label' => 'Events']);
@@ -66,8 +72,8 @@ class WPAICal_El_Calendar extends Widget_Base {
     public function get_icon() { return 'eicon-calendar'; }
     public function get_categories() { return ['wpaical']; }
     public function get_keywords() { return ['events', 'calendar', 'month', 'schedule']; }
-    public function get_style_depends() { return ['wpaical-calendar']; }
-    public function get_script_depends() { return ['wpaical-calendar', 'wpaical-elementor']; }
+    public function get_style_depends() { return wpaical_el_editing() ? ['wpaical-calendar'] : []; }
+    public function get_script_depends() { return wpaical_el_editing() ? ['wpaical-calendar', 'wpaical-elementor'] : []; }
 
     protected function register_controls() {
         $this->start_controls_section('content', ['label' => 'Calendar']);
