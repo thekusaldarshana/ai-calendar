@@ -2,7 +2,7 @@
 Contributors: kusaldarshana
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 0.1.2
+Stable tag: 0.1.3
 Tested up to: 6.8
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -25,6 +25,9 @@ Use Google Calendar as the single source of truth for your events. WP AI Calenda
 4. Set Settings -> General -> Timezone to a city (not a UTC offset).
 
 == Changelog ==
+
+= 0.1.3 =
+* API: the events response now includes the site timezone, so displays (TVs, widgets) can compare "now" in the site's time instead of the viewer's.
 
 = 0.1.2 =
 * Dashboard: "Open Google Calendar" button and an "Edit in Google" link on every upcoming event.

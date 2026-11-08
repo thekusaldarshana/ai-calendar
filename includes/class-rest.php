@@ -39,6 +39,7 @@ class WPAICal_Rest {
         $response = rest_ensure_response([
             'events'     => $out,
             'count'      => count($out),
+            'timezone'   => wp_timezone_string(),
             'fetched_at' => $cache['fetched_at'] ? gmdate('c', $cache['fetched_at']) : null,
             'stale'      => $cache['error'] !== '',
         ]);

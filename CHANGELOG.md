@@ -2,6 +2,10 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.1.3] - 2026-11-08
+### Added
+- `timezone` field in the `/wpaical/v1/events` response (the site's IANA timezone), so displays can compute "now" in site time.
+
 ## [0.1.2] - 2026-11-08
 ### Added
 - "Open Google Calendar" button and per-event "Edit in Google" links on the dashboard.
