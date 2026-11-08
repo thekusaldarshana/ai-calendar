@@ -18,7 +18,7 @@ function wpaical_el_list($value) {
 
 class WPAICal_El_Upcoming extends Widget_Base {
     public function get_name() { return 'wpaical_upcoming'; }
-    public function get_title() { return 'Upcoming Events (cards)'; }
+    public function get_title() { return 'WP AI Event Cards'; }
     public function get_icon() { return 'eicon-posts-grid'; }
     public function get_categories() { return ['wpaical']; }
     public function get_keywords() { return ['events', 'calendar', 'cards', 'upcoming', 'program']; }
@@ -68,7 +68,7 @@ class WPAICal_El_Upcoming extends Widget_Base {
 
 class WPAICal_El_Calendar extends Widget_Base {
     public function get_name() { return 'wpaical_calendar'; }
-    public function get_title() { return 'Events Calendar'; }
+    public function get_title() { return 'WP AI Calendar'; }
     public function get_icon() { return 'eicon-calendar'; }
     public function get_categories() { return ['wpaical']; }
     public function get_keywords() { return ['events', 'calendar', 'month', 'schedule']; }

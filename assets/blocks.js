@@ -26,7 +26,7 @@
   }
 
   wp.blocks.registerBlockType('wpaical/upcoming', {
-    title: 'Upcoming Events (cards)', icon: 'screenoptions', category: 'widgets',
+    title: 'WP AI Event Cards', icon: 'screenoptions', category: 'widgets',
     description: 'Cards for upcoming events from your calendar, optionally for one program.',
     keywords: ['events', 'calendar', 'cards'],
     edit: edit('wpaical/upcoming', function (p) {
@@ -43,7 +43,7 @@
   });
 
   wp.blocks.registerBlockType('wpaical/calendar', {
-    title: 'Events Calendar', icon: 'calendar-alt', category: 'widgets',
+    title: 'WP AI Calendar', icon: 'calendar-alt', category: 'widgets',
     description: 'A month, week and list calendar of your events. The interactive calendar appears on the live page; this preview shows the upcoming list.',
     keywords: ['events', 'calendar', 'schedule'],
     edit: edit('wpaical/calendar', function (p) {

@@ -4,7 +4,7 @@ Tags: calendar, events, google calendar, rest api, mcp
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.1.9
+Stable tag: 0.1.10
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -54,6 +54,9 @@ No. The plugin itself never contacts an AI provider. If you connect an AI client
 Every 5 minutes, and immediately after any change made through the plugin.
 
 == Changelog ==
+
+= 0.1.10 =
+* Renamed the Elementor widgets and editor blocks to "WP AI Calendar" and "WP AI Event Cards" so they are not confused with other calendar plugins' widgets.
 
 = 0.1.9 =
 * Elementor widgets no longer load their CSS/JS on every page; assets load only where a widget is used (and in the editor preview).

@@ -2,6 +2,10 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.1.10] - 2026-11-08
+### Changed
+- Elementor widgets and blocks renamed "WP AI Calendar" and "WP AI Event Cards" (internal ids unchanged, so existing pages keep working).
+
 ## [0.1.9] - 2026-11-08
 ### Fixed
 - Elementor widgets declared their assets sitewide when Elementor's "optimized assets loading" is off; they are now declared only in the editor/preview.

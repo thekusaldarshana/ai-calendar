@@ -2,7 +2,7 @@
 defined('ABSPATH') || exit;
 
 /**
- * Elementor integration: two drag-and-drop widgets ("Upcoming Events (cards)" and "Events Calendar"),
+ * Elementor integration: two drag-and-drop widgets ("WP AI Calendar" and "WP AI Event Cards"),
  * in a "WP AI Calendar" group in the widget panel. They render exactly what the shortcodes render.
  * Nothing loads unless Elementor is active.
  */

@@ -393,7 +393,7 @@ class WPAICal_Admin {
 
             <div class="card" style="max-width:none;margin:0 0 16px;">
                 <h2 style="margin-top:0">Put your calendar on any page</h2>
-                <p><strong>No shortcodes needed:</strong> in Elementor, drag the <em>Events Calendar</em> or <em>Upcoming Events (cards)</em> widget (group &ldquo;WP AI Calendar&rdquo;) onto the page; in the block editor, add the blocks of the same names. Or use a shortcode:</p>
+                <p><strong>No shortcodes needed:</strong> in Elementor, drag the <em>WP AI Calendar</em> or <em>WP AI Event Cards</em> widget (group &ldquo;WP AI Calendar&rdquo;) onto the page; in the block editor, add the blocks of the same names. Or use a shortcode:</p>
                 <p>Full calendar (month, week and list views, category filters, timezone switch):</p>
                 <pre style="background:#f6f7f7;padding:10px;overflow:auto;margin:0 0 8px">[wpaical_calendar]</pre>
                 <p class="description" style="margin:0 0 18px">
