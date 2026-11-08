@@ -2,7 +2,7 @@
 Contributors: kusaldarshana
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 0.1.0
+Stable tag: 0.1.1
 Tested up to: 6.8
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -23,6 +23,16 @@ Use Google Calendar as the single source of truth for your events. WP AI Calenda
 2. Google Calendar: create a calendar, share it with the service account's email with "Make changes to events", copy the Calendar ID.
 3. AI Calendar (sidebar) -> Settings: enter the Calendar ID, upload the JSON key (or define `WPAICAL_SERVICE_ACCOUNT_JSON` in wp-config.php), optionally set categories and programs, then Sync now.
 4. Set Settings -> General -> Timezone to a city (not a UTC offset).
+
+== Changelog ==
+
+= 0.1.1 =
+* Admin: Programs are now a table with a page search, a category dropdown that can create new categories, and a count of matching calendar events.
+* MCP: get_event and delete_event return a clear error when event_id is missing.
+* Added a ready-made Agent Skill (see the GitHub repository) that teaches AI agents how to use the MCP tools safely.
+
+= 0.1.0 =
+* Initial release.
 
 == Security ==
 The service-account key can edit your calendar. Prefer the wp-config.php constant over storing it in the database. The MCP endpoint requires an authenticated Editor+ user; use HTTPS.

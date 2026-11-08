@@ -408,6 +408,9 @@ class WPAICal_MCP {
             return $c;
         }
         $id = (string) ($a['event_id'] ?? '');
+        if ($id === '') {
+            return new WP_Error('wpaical_mcp_arg', 'event_id is required.');
+        }
         $r  = $c[0]->delete_event($c[1], $id);
         if (is_wp_error($r)) {
             return $r;

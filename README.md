@@ -63,3 +63,7 @@ Early (v0.1.0). Works in production on one site; expect rough edges. Issues and 
 ## License
 
 GPL-2.0-or-later. Copyright (C) 2026 Kusal Darshana.
+
+## Agent skills
+
+`skills/wp-ai-calendar/SKILL.md` is a ready-made [Agent Skill](https://agentskills.io) that teaches an AI agent how and when to use the MCP tools safely (read before write, series vs occurrence ids, recurrence rules, confirm destructive changes). Copy the `wp-ai-calendar` folder into your agent's skills directory (for Claude Code: `~/.claude/skills/` or `.claude/skills/`).
