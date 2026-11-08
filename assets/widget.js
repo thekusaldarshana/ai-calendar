@@ -15,7 +15,10 @@
     return n ? n.value : tz;
   }
 
-  document.querySelectorAll('.wpaical-up').forEach(function (root) {
+  function initCards(scope) {
+  (scope || document).querySelectorAll('.wpaical-up').forEach(function (root) {
+    if (root.__wpaical) { return; }
+    root.__wpaical = true;
     var site = root.getAttribute('data-tz');
     var cards = root.querySelectorAll('.wpaical-card[data-start]'); // date-less cards have no data-start and are left alone
     if (!site || !cards.length || viewer === site) { return; } // same zone: nothing to convert
@@ -57,4 +60,8 @@
     });
     apply();
   });
+  }
+  window.WPAICalInit = window.WPAICalInit || {};
+  window.WPAICalInit.cards = initCards;
+  if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', function () { initCards(); }); } else { initCards(); }
 })();

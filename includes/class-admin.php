@@ -393,11 +393,12 @@ class WPAICal_Admin {
 
             <div class="card" style="max-width:none;margin:0 0 16px;">
                 <h2 style="margin-top:0">Put your calendar on any page</h2>
+                <p><strong>No shortcodes needed:</strong> in Elementor, drag the <em>Events Calendar</em> or <em>Upcoming Events (cards)</em> widget (group &ldquo;WP AI Calendar&rdquo;) onto the page; in the block editor, add the blocks of the same names. Or use a shortcode:</p>
                 <p>Full calendar (month, week and list views, category filters, timezone switch):</p>
                 <pre style="background:#f6f7f7;padding:10px;overflow:auto;margin:0 0 8px">[wpaical_calendar]</pre>
                 <p class="description" style="margin:0 0 18px">
                     <code>views</code> month,week,list &middot; <code>default_view</code> &middot; <code>program</code> / <code>categories</code> to limit it &middot;
-                    <code>legend</code>, <code>timezone_toggle</code> yes/no &middot; <code>week_start</code> 0&ndash;6 &middot; <code>chips</code> events per day &middot; <code>eyebrow</code>, <code>title</code>.
+                    <code>legend</code>, <code>timezone_toggle</code>, <code>new_tab</code> yes/no &middot; <code>labels</code> e.g. <code>Day-long=Retreat</code> &middot; <code>week_start</code> 0&ndash;6 &middot; <code>chips</code> events per day &middot; <code>eyebrow</code>, <code>title</code>.
                     Colours: set a colour per category under Settings below; theme it with the <code>--wpaical-cal-*</code> variables in Widget CSS.
                 </p>
                 <h2 style="margin-top:0">Show upcoming events as cards</h2>

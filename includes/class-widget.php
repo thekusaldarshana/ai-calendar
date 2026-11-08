@@ -195,12 +195,8 @@ class WPAICal_Widget {
             }
         }
 
-        wp_enqueue_style('wpaical-widget', plugins_url('assets/widget.css', WPAICAL_DIR . 'wp-ai-calendar.php'), [], WPAICAL_VERSION);
-        $css = trim((string) get_option(self::CSS_OPTION, ''));
-        if ($css !== '') {
-            wp_add_inline_style('wpaical-widget', wp_strip_all_tags($css));
-        }
-        wp_enqueue_script('wpaical-widget', plugins_url('assets/widget.js', WPAICAL_DIR . 'wp-ai-calendar.php'), [], WPAICAL_VERSION, true);
+        wp_enqueue_style('wpaical-widget');
+        wp_enqueue_script('wpaical-widget');
 
         ob_start();
         ?>

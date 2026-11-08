@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.1.8] - 2026-11-08
+### Added
+- Elementor widgets "Events Calendar" and "Upcoming Events (cards)" (category "WP AI Calendar") with content and style controls.
+- Block editor blocks `wpaical/calendar` and `wpaical/upcoming` (server-side rendered, live preview in the editor).
+- Calendar options `labels` (rename legend categories) and `new_tab`; separate heading font variable `--wpaical-cal-font-heading`; `--wpaical-cal-text-soft/-strong/-none/-empty/-padding` variables.
+### Changed
+- Calendar layout and typography reworked to match the original hand-built design exactly; category colours are emitted as CSS rules on `[data-cat]`.
+- Assets are registered centrally (`WPAICal_Assets`).
+
 ## [0.1.7] - 2026-11-08
 ### Added
 - `[wpaical_calendar]` shortcode: month / week / list calendar, category legend filter, day dialog, timezone switch, keyboard and screen-reader support, no-JS fallback list. Options: `views`, `default_view`, `program`, `match`, `categories`, `legend`, `timezone_toggle`, `week_start`, `chips`, `eyebrow`, `title`.

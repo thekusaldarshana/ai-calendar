@@ -31,6 +31,8 @@ class WPAICal_Calendar {
             'timezone_toggle' => 'yes',             // "Your time / Event time" for visitors in another timezone
             'week_start'      => '',                // 0 = Sunday ... 6; empty = the WordPress setting
             'chips'           => 2,                 // events shown per day cell before "+N more"
+            'labels'          => '',                // legend labels, e.g. labels="Day-long=Day-long / Retreat"
+            'new_tab'         => 'yes',             // open event links in a new tab
             'eyebrow'         => '',
             'title'           => '',                // empty = the month name
         ], $atts, 'wpaical_calendar');
@@ -46,8 +48,18 @@ class WPAICal_Calendar {
 
         $cats = [];
         foreach (WPAICal_Registry::category_colors() as $name => $hex) {
+            $slug = sanitize_title($name);
             if (!$only || in_array(strtolower($name), array_map('strtolower', $only), true)) {
-                $cats[] = ['name' => $name, 'color' => $hex];
+                $cats[] = ['name' => $name, 'slug' => $slug, 'color' => $hex];
+            }
+        }
+        $labels = [];
+        foreach (explode(',', (string) $a['labels']) as $pair) {
+            if (strpos($pair, '=') !== false) {
+                list($k, $v) = array_map('trim', explode('=', $pair, 2));
+                if ($k !== '' && $v !== '') {
+                    $labels[$k] = $v;
+                }
             }
         }
         $config = [
@@ -63,17 +75,14 @@ class WPAICal_Calendar {
             'tzToggle' => self::yes($a['timezone_toggle']),
             'weekStart' => max(0, min(6, $ws)),
             'chips'    => max(1, min(6, (int) $a['chips'])),
+            'labels'   => (object) $labels,
+            'newTab'   => self::yes($a['new_tab']),
             'eyebrow'  => (string) $a['eyebrow'],
             'title'    => (string) $a['title'],
         ];
 
-        $main = WPAICAL_DIR . 'wp-ai-calendar.php';
-        wp_enqueue_style('wpaical-calendar', plugins_url('assets/calendar.css', $main), [], WPAICAL_VERSION);
-        $css = trim((string) get_option(WPAICal_Widget::CSS_OPTION, ''));
-        if ($css !== '') {
-            wp_add_inline_style('wpaical-calendar', wp_strip_all_tags($css));
-        }
-        wp_enqueue_script('wpaical-calendar', plugins_url('assets/calendar.js', $main), [], WPAICAL_VERSION, true);
+        wp_enqueue_style('wpaical-calendar');
+        wp_enqueue_script('wpaical-calendar');
 
         // Fallback list (no JavaScript / search engines): the next events, replaced by the calendar.
         $tz      = wp_timezone();

@@ -65,8 +65,8 @@
     var EVENTS = [];         // converted to the displayed timezone
     var loaded = {};         // 'YYYY-MM' -> true
     var failed = false, loading = false;
-    var colors = {};
-    cfg.cats.forEach(function (c) { colors[c.name.toLowerCase()] = c.color; });
+    var slugs = {};
+    cfg.cats.forEach(function (c) { slugs[c.name.toLowerCase()] = c.slug; });
     var needles = (cfg.program || '').split(',').map(function (s) { return s.trim().toLowerCase(); }).filter(Boolean);
     var only = (cfg.only || []).map(function (s) { return s.toLowerCase(); });
 
@@ -78,8 +78,9 @@
     var weekStart = new Date(t0.y, t0.m - 1, t0.d);
     weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() - cfg.weekStart + 7) % 7));
 
-    function color(cat) { return colors[(cat || '').toLowerCase()] || '#6b7280'; }
-    function style(cat) { var c = color(cat); return '--c:' + c + ';--cbg:' + hexToRgba(c, 0.14); }
+    function slug(cat) { return slugs[(cat || '').toLowerCase()] || ''; }
+    function dc(cat) { var s = slug(cat); return s ? ' data-cat="' + esc(s) + '"' : ''; }
+    function label(cat) { return (cfg.labels && cfg.labels[cat]) || cat; }
 
     // ---- data ----
     function matches(ev) {
@@ -168,10 +169,11 @@
       }
       return MONTHS[cur.m] + ' ' + cur.y;
     }
+    var tgt = cfg.newTab ? ' target="_blank" rel="noopener"' : '';
     function itemHtml(e, withDate) {
-      var name = e.link ? '<a class="wc-name" href="' + esc(e.link) + '">' + esc(e.title) + '</a>' : '<span class="wc-name">' + esc(e.title) + '</span>';
+      var name = e.link ? '<a class="wc-name" href="' + esc(e.link) + '"' + tgt + '>' + esc(e.title) + '</a>' : '<span class="wc-name">' + esc(e.title) + '</span>';
       return '<div class="wc-item"><span class="wc-time">' + esc(e.label) + '</span>' + name +
-        (e.cat ? '<span class="wc-tag" style="' + style(e.cat) + '">' + esc(e.cat) + '</span>' : '') +
+        (e.cat ? '<span class="wc-tag"' + dc(e.cat) + '>' + esc(e.cat) + '</span>' : '') +
         (e.loc ? '<span class="wc-loc">' + esc(e.loc) + '</span>' : '') + '</div>';
     }
     function rowHtml(date, evs) {
@@ -205,31 +207,33 @@
       var dt = new Date(y, m - 1, d);
       self.overlay.querySelector('h3').textContent = DOWS[dt.getDay()] + ', ' + MONTHS[m - 1] + ' ' + d;
       self.overlay.querySelector('.wc-mbody').innerHTML = evs.length ? evs.map(function (e) {
-        return '<div class="wc-mevt"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="wc-time">' + esc(e.label) + '</span>' +
-          (e.cat ? '<span class="wc-tag" style="' + style(e.cat) + '">' + esc(e.cat) + '</span>' : '') + '</div>' +
-          '<span class="wc-name">' + esc(e.title) + '</span>' + (e.loc ? '<span class="wc-loc">' + esc(e.loc) + '</span><br>' : '') +
-          (e.link ? '<a class="wc-link" href="' + esc(e.link) + '">View event details &#8594;</a>' : '') + '</div>';
+        return '<div class="wc-mevt"><div class="wc-mtitle"><div class="wc-mrow"><span class="wc-time">' + esc(e.label) + '</span>' +
+          (e.cat ? '<span class="wc-tag"' + dc(e.cat) + '>' + esc(e.cat) + '</span>' : '') + '</div>' +
+          '<span class="wc-name">' + esc(e.title) + '</span>' + (e.loc ? '<span class="wc-loc">' + esc(e.loc) + '</span>' : '') +
+          (e.link ? '<a class="wc-link" href="' + esc(e.link) + '"' + tgt + '>View event details &#8594;</a>' : '') + '</div></div>';
       }).join('') : '<p class="wc-none">No events on this day.</p>';
       self.overlay.hidden = false;
       self.overlay.querySelector('.wc-close').focus();
     }
     function closeModal() { self.overlay.hidden = true; if (lastFocus) { lastFocus.focus(); } }
 
+    function tzLabel(tz, long) {
+      var US = { 'America/New_York': 'Eastern Time (ET)', 'America/Chicago': 'Central Time (CT)', 'America/Denver': 'Mountain Time (MT)', 'America/Los_Angeles': 'Pacific Time (PT)' };
+      return US[tz] || tzName(tz, long);
+    }
     function draw() {
-      var tzBar = '';
-      if (cfg.tzToggle && !sameZone()) {
-        tzBar = '<div class="wc-tz"><span>Times shown in ' + esc(tzName(viewTz(), true)) + '.</span>' +
-          '<button type="button" data-tz="viewer" aria-pressed="' + (tzMode === 'viewer') + '">Your time</button>' +
-          '<button type="button" data-tz="site" aria-pressed="' + (tzMode === 'site') + '">' + esc(tzName(cfg.tz, false)) + ' (event time)</button></div>';
-      }
+      var showTz = cfg.tzToggle && !sameZone();
+      var tzGroup = showTz ? '<div class="wc-views wc-tzgroup" role="group" aria-label="Show event times in">' +
+        '<button type="button" data-tz="viewer" aria-pressed="' + (tzMode === 'viewer') + '">Your time</button>' +
+        '<button type="button" data-tz="site" aria-pressed="' + (tzMode === 'site') + '">' + esc(tzLabel(cfg.tz, false)) + '</button></div>' : '';
       var viewBtns = cfg.views.length > 1 ? '<div class="wc-views" role="group" aria-label="View">' + cfg.views.map(function (v) {
-        return '<button type="button" data-view="' + v + '" aria-pressed="' + (v === view) + '">' + v.charAt(0).toUpperCase() + v.slice(1) + '</button>';
+        return '<button type="button" data-view="' + v + '" aria-pressed="' + (v === view) + '">' + (v === 'list' ? 'List' : v === 'week' ? 'Week' : 'Month') + '</button>';
       }).join('') + '</div>' : '';
       var legend = '';
       if (cfg.legend && cfg.cats.length) {
-        legend = '<div class="wc-legend" role="group" aria-label="Filter by category"><button type="button" class="wc-chip" data-cat="all" aria-pressed="' + (activeCat === 'all') + '"><span class="dot"></span>All events</button>' +
+        legend = '<div class="wc-legend" role="group" aria-label="Filter by category"><button type="button" class="wc-chip" data-cat="all" aria-pressed="' + (activeCat === 'all') + '"><span class="dot"></span>All Events</button>' +
           cfg.cats.map(function (c) {
-            return '<button type="button" class="wc-chip" data-cat="' + esc(c.name) + '" style="' + style(c.name) + '" aria-pressed="' + (activeCat === c.name) + '"><span class="dot"></span>' + esc(c.name) + '</button>';
+            return '<button type="button" class="wc-chip" data-filter="' + esc(c.name) + '" data-cat="' + esc(c.slug) + '" aria-pressed="' + (activeCat === c.name) + '"><span class="dot"></span>' + esc(label(c.name)) + '</button>';
           }).join('') + '</div>';
       }
       var body;
@@ -239,9 +243,9 @@
       else if (view === 'week') { body = '<div class="wc-agenda">' + weekHtml() + '</div>'; }
       else { body = '<div class="wc-agenda">' + listHtml() + '</div>'; }
 
-      shell.innerHTML = '<div class="wc-head"><div>' + (cfg.eyebrow ? '<p class="wc-eyebrow">' + esc(cfg.eyebrow) + '</p>' : '') + '<h2 class="wc-title">' + esc(title()) + '</h2></div>' +
-        '<div class="wc-controls">' + viewBtns + '<div class="wc-nav"><button type="button" class="wc-navbtn" data-nav="-1" aria-label="Previous">&#8249;</button><button type="button" class="wc-today">Today</button><button type="button" class="wc-navbtn" data-nav="1" aria-label="Next">&#8250;</button></div></div></div>' +
-        tzBar + legend + '<div class="wc-card">' + body + '</div>';
+      shell.innerHTML = '<div class="wc-head"><div>' + (cfg.eyebrow ? '<div class="wc-eyebrow">' + esc(cfg.eyebrow) + '</div>' : '') + '<h2 class="wc-title">' + esc(title()) + '</h2></div>' +
+        '<div class="wc-controls">' + viewBtns + tzGroup + '<div class="wc-nav"><button type="button" class="wc-navbtn" data-nav="-1" aria-label="Previous">&#8249;</button><button type="button" class="wc-today">Today</button><button type="button" class="wc-navbtn" data-nav="1" aria-label="Next">&#8250;</button></div></div></div>' +
+        '<p class="wc-tznote">Times shown in ' + esc(tzLabel(viewTz(), true)) + '.</p>' + legend + '<div class="wc-card">' + body + '</div>';
     }
     function dowRow() {
       var h = '<div class="wc-dow">';
@@ -260,7 +264,7 @@
         h += '<div class="wc-day' + (isToday(cur.y, cur.m + 1, d) ? ' today' : '') + '" data-d="' + d + '" tabindex="0" role="button" aria-label="' + MONTHS[cur.m] + ' ' + d + ', ' + evs.length + ' events"><span class="wc-num">' + d + '</span>';
         if (evs.length) {
           h += '<div class="wc-evs">' + shown.map(function (e) {
-            return '<div class="wc-ev" style="' + style(e.cat) + '"><span class="dot"></span><span class="t">' + esc(e.title) + '</span></div>';
+            return '<div class="wc-ev"' + dc(e.cat) + '><span class="dot"></span><span class="t">' + esc(e.title) + '</span></div>';
           }).join('') + (evs.length > shown.length ? '<div class="wc-more">+' + (evs.length - shown.length) + ' more</div>' : '') + '</div>';
         }
         h += '</div>';
@@ -309,8 +313,8 @@
         }
         return load();
       }
-      var cb = t.closest('[data-cat]');
-      if (cb) { activeCat = cb.getAttribute('data-cat'); return draw(); }
+      var cb = t.closest('.wc-chip');
+      if (cb) { activeCat = cb.getAttribute('data-filter') || 'all'; return draw(); }
       var tz = t.closest('[data-tz]');
       if (tz) {
         tzMode = tz.getAttribute('data-tz');
@@ -326,6 +330,14 @@
     load();
   }
 
-  function init() { document.querySelectorAll('.wpaical-cal[data-config]').forEach(function (r) { new Calendar(r); }); }
-  if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); } else { init(); }
+  function init(scope) {
+    (scope || document).querySelectorAll('.wpaical-cal[data-config]').forEach(function (r) {
+      if (r.__wpaical) { return; } // already running (page builders may call this again)
+      r.__wpaical = true;
+      new Calendar(r);
+    });
+  }
+  window.WPAICalInit = window.WPAICalInit || {};
+  window.WPAICalInit.calendar = init;
+  if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', function () { init(); }); } else { init(); }
 })();

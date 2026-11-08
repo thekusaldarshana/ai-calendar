@@ -3,7 +3,7 @@
  * Plugin Name: WP AI Calendar
  * Description: Uses a Google Calendar as the source of truth for your events: syncs it, serves a JSON API for websites and signage, and exposes an MCP server so AI agents can manage events.
  * Plugin URI:  https://github.com/thekusaldarshana/wp-ai-calendar
- * Version:     0.1.7
+ * Version:     0.1.8
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author:      Kusal Darshana
@@ -17,11 +17,12 @@
 
 defined('ABSPATH') || exit;
 
-define('WPAICAL_VERSION', '0.1.7');
+define('WPAICAL_VERSION', '0.1.8');
 define('WPAICAL_DIR', plugin_dir_path(__FILE__));
 
 require_once WPAICAL_DIR . 'includes/class-google-client.php';
 require_once WPAICAL_DIR . 'includes/class-registry.php';
+require_once WPAICAL_DIR . 'includes/class-assets.php';
 require_once WPAICAL_DIR . 'includes/class-sync.php';
 require_once WPAICAL_DIR . 'includes/class-rest.php';
 require_once WPAICAL_DIR . 'includes/class-mcp.php';
@@ -29,6 +30,8 @@ require_once WPAICAL_DIR . 'includes/class-widget.php';
 require_once WPAICAL_DIR . 'includes/class-calendar.php';
 require_once WPAICAL_DIR . 'includes/class-admin.php';
 require_once WPAICAL_DIR . 'includes/class-cards-admin.php';
+require_once WPAICAL_DIR . 'includes/class-elementor.php';
+require_once WPAICAL_DIR . 'includes/class-blocks.php';
 
 // Registered at file load, not on plugins_loaded: the activation hook below needs this schedule to exist.
 add_filter('cron_schedules', function ($schedules) {
@@ -40,10 +43,13 @@ add_action('plugins_loaded', function () {
     WPAICal_Sync::init();
     WPAICal_Rest::init();
     WPAICal_MCP::init();
+    WPAICal_Assets::init();
     WPAICal_Widget::init();
     WPAICal_Calendar::init();
     WPAICal_Admin::init();
     WPAICal_Cards_Admin::init();
+    WPAICal_Elementor::init();
+    WPAICal_Blocks::init();
 });
 
 // "Settings" shortcut on the Plugins screen.
