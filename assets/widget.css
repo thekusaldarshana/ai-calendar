@@ -1,0 +1,25 @@
+/* WP AI Calendar: [wpaical_upcoming]. Override the variables (Settings -> Widget CSS) to match your theme. */
+.wpaical-up{--wpaical-text:#1d2327;--wpaical-muted:#646970;--wpaical-accent:#2271b1;--wpaical-accent-hover:#135e96;--wpaical-soft:#e8f0f7;--wpaical-line:#dcdcde;--wpaical-card:#fff;font-family:inherit;color:var(--wpaical-text);max-width:1180px;margin:0 auto;padding:8px 0}
+.wpaical-up *{box-sizing:border-box}
+.wpaical-up .wpaical-up-title{text-align:center;font-size:clamp(26px,4vw,38px);font-weight:600;margin:0 0 6px;color:var(--wpaical-text)}
+.wpaical-up .wpaical-up-lead{text-align:center;color:var(--wpaical-muted);margin:0 0 24px}
+.wpaical-up .wpaical-up-empty{text-align:center;color:var(--wpaical-muted);padding:24px 0}
+.wpaical-up .wpaical-tz{display:flex;gap:8px;justify-content:center;margin:0 0 22px;flex-wrap:wrap;align-items:center;font-size:14px;color:var(--wpaical-muted)}
+.wpaical-up .wpaical-tz button{font:inherit;font-weight:500;border:1px solid var(--wpaical-line);background:var(--wpaical-card);color:var(--wpaical-text);padding:7px 16px;border-radius:999px;cursor:pointer;line-height:1.2}
+.wpaical-up .wpaical-tz button[aria-pressed=true]{background:var(--wpaical-text);color:#fff;border-color:var(--wpaical-text)}
+.wpaical-up .wpaical-up-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:22px}
+.wpaical-up .wpaical-card{border:1px solid var(--wpaical-line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;background:var(--wpaical-card);transition:transform .2s,box-shadow .2s}
+.wpaical-up .wpaical-card:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(0,0,0,.1)}
+.wpaical-up .wpaical-pic{aspect-ratio:16/9;background:linear-gradient(135deg,#d9cbb8,#a9b4c4);overflow:hidden}
+.wpaical-up .wpaical-pic img{width:100%;height:100%;object-fit:cover;display:block;margin:0;border-radius:0}
+.wpaical-up .wpaical-ph{height:100%;display:flex;align-items:center;justify-content:center;padding:0 12px;text-align:center;color:#fff;font-weight:600;font-size:18px;text-shadow:0 1px 3px rgba(0,0,0,.3)}
+.wpaical-up .wpaical-body{padding:16px 18px 18px;display:flex;flex-direction:column;flex:1}
+.wpaical-up .wpaical-kick{font-size:12px;font-weight:600;color:var(--wpaical-accent);text-transform:uppercase;letter-spacing:.6px;margin:0 0 4px;line-height:1.4}
+.wpaical-up h3{font-size:17px;font-weight:600;margin:0;line-height:1.3;color:var(--wpaical-text)}
+.wpaical-up .wpaical-where{color:var(--wpaical-muted);font-size:14px;margin:2px 0 0}
+.wpaical-up .wpaical-when{font-size:14px;margin:12px 0 16px;flex:1;line-height:1.5}
+.wpaical-up .wpaical-date{background:var(--wpaical-soft);font-weight:600;font-size:12px;padding:3px 9px;border-radius:999px;margin-right:6px;white-space:nowrap}
+.wpaical-up .wpaical-btn{display:block;text-align:center;background:var(--wpaical-accent);color:#fff !important;text-decoration:none;font-weight:600;padding:10px;border-radius:999px;font-size:15px}
+.wpaical-up .wpaical-btn:hover{background:var(--wpaical-accent-hover)}
+.wpaical-up .wpaical-btn:focus-visible,.wpaical-up .wpaical-tz button:focus-visible{outline:3px solid var(--wpaical-text);outline-offset:2px}
+@media(max-width:767px){.wpaical-up{padding:8px 16px}}

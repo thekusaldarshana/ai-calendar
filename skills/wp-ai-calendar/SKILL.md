@@ -31,7 +31,7 @@ The site's events live in **Google Calendar**. The WP AI Calendar plugin caches 
 3. **Series vs occurrence.** `list_events` returns occurrence ids (like `abc123_20261108T140000Z`); their `series_id` is the series. Change one date with the occurrence id, all dates with the series id. To skip one date, prefer `cancel_occurrence`.
 4. **Times are in the site timezone** (shown by `status`), written `YYYY-MM-DD HH:MM`. For all-day events use `YYYY-MM-DD`, and `end` is the **last day, inclusive**. When changing a time, pass both `start` and `end`.
 5. **Title matters.** A title that matches a registry entry automatically gets that program page and category. Use the exact existing title for a new session of a known program (check `list_programs`).
-6. **Do not put `page:` or `category:` lines in `description`.** Use the `page` and `category` fields; the plugin manages those lines itself.
+6. **Do not put `page:`, `category:` or `image:` lines in `description`.** Use the `page`, `category` and `image` fields; the plugin manages those lines itself. `image` is an optional https URL shown on the event's card in the site's upcoming-events widget (`[wpaical_upcoming]`).
 7. **Verify after every write.** Re-read with `get_event` or `list_events` and report what is now true, not what you intended.
 8. **Never reveal credentials**, the service-account key, or Application Passwords in any output.
 

@@ -4,7 +4,7 @@ Tags: calendar, events, google calendar, rest api, mcp
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.1.4
+Stable tag: 0.1.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -54,6 +54,11 @@ No. The plugin itself never contacts an AI provider. If you connect an AI client
 Every 5 minutes, and immediately after any change made through the plugin.
 
 == Changelog ==
+
+= 0.1.5 =
+* New [wpaical_upcoming] shortcode: upcoming events from your calendar as cards, optionally filtered to one program (title), category or series. Server-rendered, with an automatic "your time / event time" switch for visitors in another timezone.
+* New optional per-event image (image field in the MCP tools / "image:" line in the event description); falls back to the program page's featured image.
+* New "Widget CSS" setting to match the widget to your theme.
 
 = 0.1.4 =
 * Security: private and confidential Google events are never published; event ids are validated before building Google API URLs; the OAuth token endpoint is fixed to Google's (the `token_uri` field in an uploaded key is no longer used); MCP input is validated (types, dates, line breaks) and bad input returns an error instead of a fatal; batch size is capped; changing the program registry through MCP requires an administrator.

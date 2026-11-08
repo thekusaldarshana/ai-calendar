@@ -51,6 +51,7 @@ class WPAICal_Admin {
         self::save_programs($cats);
         update_option(WPAICal_Registry::CATEGORIES_OPTION, implode(', ', $cats));
         update_option('wpaical_instructions', sanitize_textarea_field(wp_unslash($_POST['instructions'] ?? '')));
+        update_option(WPAICal_Widget::CSS_OPTION, wp_strip_all_tags(wp_unslash($_POST['widget_css'] ?? '')));
 
         // Only touch the credentials if a new JSON was pasted (the box is never pre-filled).
         $json = isset($_POST['service_account']) && is_string($_POST['service_account']) ? trim(wp_unslash($_POST['service_account'])) : '';
@@ -396,6 +397,22 @@ class WPAICal_Admin {
             </div>
 
             <div class="card" style="max-width:none;margin:0 0 16px;">
+                <h2 style="margin-top:0">Show upcoming events on any page</h2>
+                <p>Paste a shortcode into a page (in Elementor, use a <em>Shortcode</em> widget). It lists upcoming events from this calendar as cards, so the page never needs manual edits.</p>
+                <pre style="background:#f6f7f7;padding:10px;overflow:auto;margin:0 0 8px">[wpaical_upcoming program="Meditate with a Monk" limit="10"]</pre>
+                <p class="description" style="margin:0">
+                    <code>program</code> event title(s), comma separated (empty = all events) &middot;
+                    <code>match</code> prefix (default), exact or contains &middot;
+                    <code>category</code> only this category &middot;
+                    <code>limit</code> 1&ndash;50 (default 10) &middot;
+                    <code>days</code> how far ahead (default 365) &middot;
+                    <code>series</code> all (default) or next (one card per recurring series) &middot;
+                    <code>heading</code>, <code>lead</code>, <code>button</code>, <code>empty</code> text.
+                    A card's picture comes from its event's <code>image</code> (Quick edit / MCP), else the program page's featured image.
+                </p>
+            </div>
+
+            <div class="card" style="max-width:none;margin:0 0 16px;">
                 <h2 style="margin-top:0">Connect an AI agent (MCP)</h2>
                 <p>Create an Application Password for an Editor+ user (Users &rarr; Profile), then add this to your MCP client. The header value is <code>Basic</code> + base64 of <code>username:application-password</code>.</p>
                 <pre style="background:#f6f7f7;padding:10px;overflow:auto;margin:0"><?php echo esc_html(wp_json_encode(['type' => 'http', 'url' => rest_url('wpaical/mcp'), 'headers' => ['Authorization' => 'Basic <base64 username:application-password>']], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)); ?></pre>
@@ -426,6 +443,13 @@ class WPAICal_Admin {
                         <td>
                             <input id="categories" name="categories" type="text" class="regular-text" value="<?php echo esc_attr(get_option(WPAICal_Registry::CATEGORIES_OPTION, '')); ?>" placeholder="e.g. Weekly, Online, Special">
                             <p class="description">Comma-separated. Leave empty to allow any category name.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="widget_css">Widget CSS</label></th>
+                        <td>
+                            <textarea id="widget_css" name="widget_css" rows="5" class="large-text code" placeholder=".wpaical-up { --wpaical-accent: #c9793d; --wpaical-text: #1b2a4a; }"><?php echo esc_textarea(get_option(WPAICal_Widget::CSS_OPTION, '')); ?></textarea>
+                            <p class="description">Optional CSS added after the upcoming-events widget's styles. Colour variables: <code>--wpaical-text</code>, <code>--wpaical-muted</code>, <code>--wpaical-accent</code>, <code>--wpaical-accent-hover</code>, <code>--wpaical-soft</code>, <code>--wpaical-line</code>, <code>--wpaical-card</code>.</p>
                         </td>
                     </tr>
                     <tr>

@@ -123,6 +123,7 @@ class WPAICal_Sync {
             'all_day'    => $all_day,
             'location'   => isset($g['location']) ? sanitize_text_field($g['location']) : '',
             'url'        => $resolved['url'],
+            'image'      => isset($resolved['image']) ? $resolved['image'] : '',
             'source'     => 'gcal',
             'categories' => $cat !== '' ? [['name' => $cat, 'slug' => sanitize_title($cat)]] : [],
             'tags'       => [],

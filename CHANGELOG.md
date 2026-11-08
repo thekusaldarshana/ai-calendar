@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.1.5] - 2026-11-08
+### Added
+- `[wpaical_upcoming]` shortcode: server-rendered cards of upcoming events, filterable by program title (`program`, `match`), `category`, `series`; `limit`, `days`, and text options. Visitors in another timezone get a "Your time / Event time" switch.
+- Per-event `image` (MCP `create_event` / `update_event`, or an `image:` line in the event description); falls back to the program page's featured image. The public events API now includes `image`.
+- "Widget CSS" setting and CSS variables for theming the widget.
+- Dashboard card documenting the shortcode.
+
 ## [0.1.4] - 2026-11-08
 Security and reliability release following an independent review.
 ### Security

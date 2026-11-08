@@ -108,9 +108,9 @@ class WPAICal_Registry {
         return preg_match('/^\s*' . preg_quote($name, '/') . '\s*:\s*(.+?)\s*$/im', (string) $description, $m) ? $m[1] : '';
     }
 
-    /** Description text without our page:/category: directive lines. */
+    /** Description text without our page:/category:/image: directive lines. */
     public static function strip_directives($description) {
-        return trim(preg_replace('/^\s*(page|category)\s*:.*$/im', '', (string) $description));
+        return trim(preg_replace('/^\s*(page|category|image)\s*:.*$/im', '', (string) $description));
     }
 
     /**
@@ -118,7 +118,7 @@ class WPAICal_Registry {
      * Priority: "page:" / "category:" lines in the event description, then the registry.
      */
     public static function resolve($title, $description) {
-        $result = ['url' => '', 'category' => ''];
+        $result = ['url' => '', 'category' => '', 'image' => ''];
 
         $registry = self::all();
         $k = self::key($title);
@@ -131,6 +131,12 @@ class WPAICal_Registry {
         }
         if (preg_match('/^\s*category\s*:\s*(.+?)\s*$/im', (string) $description, $m)) {
             $result['category'] = $m[1];
+        }
+        if (preg_match('/^\s*image\s*:\s*(https?:\/\/\S+)\s*$/im', (string) $description, $m)) {
+            $result['image'] = esc_url_raw($m[1]);
+        }
+        if (!isset($result['image'])) {
+            $result['image'] = '';
         }
         return $result;
     }

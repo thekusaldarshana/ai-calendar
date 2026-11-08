@@ -149,6 +149,7 @@ class WPAICal_MCP {
             'location'    => $str,
             'page'        => ['type' => 'string', 'description' => 'Program page for this event: a path like "/special-events-dc/" or a full URL. Overrides the registry.'],
             'category'    => ['type' => 'string', 'description' => (WPAICal_Registry::categories() ? 'One of: ' . implode(', ', WPAICal_Registry::categories()) . '. ' : '') . 'Overrides the registry.'],
+            'image'       => ['type' => 'string', 'description' => 'Optional image URL (https) shown on this event\'s card in the upcoming-events widget. Falls back to the program page\'s featured image.'],
             'recurrence'  => ['type' => 'array', 'items' => $str, 'description' => 'iCalendar lines, e.g. ["RRULE:FREQ=WEEKLY;BYDAY=SU"] or ["RRULE:FREQ=MONTHLY;BYDAY=1SA,3SA","EXDATE;TZID=<site timezone>:20261107T090000"]. Omit for a one-off event.'],
         ];
         $ro = ['readOnlyHint' => true];
@@ -339,15 +340,19 @@ class WPAICal_MCP {
     }
 
     /** Compose the description Google stores: user text + our page:/category: directive lines. */
-    private static function compose_description($text, $page, $category) {
+    private static function compose_description($text, $page, $category, $image = '') {
         $page     = is_string($page) ? trim(preg_replace('/[\r\n]+/', ' ', $page)) : '';
         $category = is_string($category) ? trim(preg_replace('/[\r\n]+/', ' ', $category)) : '';
+        $image    = is_string($image) && preg_match('#^https?://\S+$#i', trim($image)) ? trim($image) : '';
         $lines = [];
         if ($page !== '' && $page !== null) {
             $lines[] = 'page: ' . $page;
         }
         if ($category !== '' && $category !== null) {
             $lines[] = 'category: ' . $category;
+        }
+        if ($image !== '') {
+            $lines[] = 'image: ' . $image;
         }
         return trim($text . "\n" . implode("\n", $lines));
     }
@@ -378,7 +383,7 @@ class WPAICal_MCP {
         if (!empty($a['location'])) {
             $body['location'] = (string) $a['location'];
         }
-        $desc = self::compose_description((string) ($a['description'] ?? ''), $a['page'] ?? '', $a['category'] ?? '');
+        $desc = self::compose_description((string) ($a['description'] ?? ''), $a['page'] ?? '', $a['category'] ?? '', $a['image'] ?? '');
         if ($desc !== '') {
             $body['description'] = $desc;
         }
@@ -420,7 +425,7 @@ class WPAICal_MCP {
             }
             $patch['recurrence'] = $rec;
         }
-        if (isset($a['description']) || isset($a['page']) || isset($a['category'])) {
+        if (isset($a['description']) || isset($a['page']) || isset($a['category']) || isset($a['image'])) {
             $existing = $c[0]->get_event($c[1], $id);
             if (is_wp_error($existing)) {
                 return $existing;
@@ -429,7 +434,8 @@ class WPAICal_MCP {
             $text = isset($a['description']) ? (string) $a['description'] : WPAICal_Registry::strip_directives($old);
             $page = array_key_exists('page', $a) ? (string) $a['page'] : WPAICal_Registry::directive($old, 'page');
             $cat  = array_key_exists('category', $a) ? (string) $a['category'] : WPAICal_Registry::directive($old, 'category');
-            $patch['description'] = self::compose_description($text, $page, $cat);
+            $img  = array_key_exists('image', $a) ? (string) $a['image'] : WPAICal_Registry::directive($old, 'image');
+            $patch['description'] = self::compose_description($text, $page, $cat, $img);
         }
         if (!$patch) {
             return new WP_Error('wpaical_mcp_arg', 'Nothing to update: pass at least one field besides event_id.');
