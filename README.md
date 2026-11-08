@@ -4,8 +4,6 @@
 
 Use **Google Calendar as the single source of truth** for your events. WP AI Calendar syncs it into WordPress, serves a fast JSON API for your website and digital signage, and exposes an **MCP server** so AI agents (Claude, etc.) can manage events for you.
 
-Built by [Kusal Darshana](https://kusaldarshana.com) for a meditation center's website and lobby TV, and open-sourced for anyone who wants a calendar that doesn't fight them.
-
 ## Why
 
 Calendar plugins want to own your data *and* your display, and recurring events are where they break. Google Calendar already handles recurrence, exceptions, sharing and mobile editing well. This plugin only adds what's missing:
