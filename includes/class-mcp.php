@@ -292,7 +292,11 @@ class WPAICal_MCP {
         if (is_wp_error($c)) {
             return $c;
         }
-        $g = $c[0]->get_event($c[1], (string) ($a['event_id'] ?? ''));
+        $id = (string) ($a['event_id'] ?? '');
+        if ($id === '') {
+            return new WP_Error('wpaical_mcp_arg', 'event_id is required.');
+        }
+        $g = $c[0]->get_event($c[1], $id);
         return is_wp_error($g) ? $g : self::present($g);
     }
 
