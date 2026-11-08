@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.1.7] - 2026-11-08
+### Added
+- `[wpaical_calendar]` shortcode: month / week / list calendar, category legend filter, day dialog, timezone switch, keyboard and screen-reader support, no-JS fallback list. Options: `views`, `default_view`, `program`, `match`, `categories`, `legend`, `timezone_toggle`, `week_start`, `chips`, `eyebrow`, `title`.
+- Per-category colours (Settings) and `--wpaical-cal-*` CSS variables for theming.
+### Changed
+- The event cache keeps 90 days of past events (was 7) so the calendar can browse back.
+
 ## [0.1.6] - 2026-11-08
 ### Added
 - **Program cards** admin screen: choose a program, view its upcoming dates, edit each date's picture (media library) and link, for one date or the whole series (written to Google Calendar as `image:` / `page:` lines). Live preview and copyable shortcode.

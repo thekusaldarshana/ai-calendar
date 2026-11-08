@@ -9,7 +9,7 @@ defined('ABSPATH') || exit;
 class WPAICal_Sync {
     const CRON_HOOK    = 'wpaical_sync';
     const CACHE_OPTION = 'wpaical_cache';
-    const DAYS_BEHIND  = 7;
+    const DAYS_BEHIND  = 90; // a month-grid calendar needs to browse back a few months
     const DAYS_AHEAD   = 365;
 
     public static function init() {

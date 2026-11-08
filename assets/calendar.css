@@ -1,0 +1,89 @@
+/*
+ * WP AI Calendar: [wpaical_calendar]. Every colour, the font and the radii are variables;
+ * override them in AI Calendar -> Settings -> Widget CSS, e.g.
+ *   .wpaical-cal { --wpaical-cal-accent: #c07a32; --wpaical-cal-head-bg: #1c244b; --wpaical-cal-font: Poppins, sans-serif; }
+ * Category colours are set per category in AI Calendar -> Settings.
+ */
+.wpaical-cal{--wpaical-cal-text:#1d2327;--wpaical-cal-muted:#646970;--wpaical-cal-accent:#2271b1;--wpaical-cal-accent-contrast:#fff;--wpaical-cal-line:#dcdcde;--wpaical-cal-card:#fff;--wpaical-cal-soft:#f6f7f7;--wpaical-cal-hover:#f9fafb;--wpaical-cal-head-bg:#1d2327;--wpaical-cal-head-text:rgba(255,255,255,.85);--wpaical-cal-today:var(--wpaical-cal-accent);--wpaical-cal-radius:20px;--wpaical-cal-shadow:0 10px 34px rgba(0,0,0,.07);--wpaical-cal-font:inherit;--wpaical-cal-cell-height:118px;font-family:var(--wpaical-cal-font);color:var(--wpaical-cal-text);max-width:1180px;margin:0 auto;padding:24px 0;position:relative}
+.wpaical-cal *{box-sizing:border-box}
+.wpaical-cal-fallback ul{margin:0;padding-left:20px}
+.wpaical-cal button{font-family:inherit}
+
+/* header */
+.wpaical-cal .wc-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:18px;padding-bottom:18px;margin-bottom:20px;border-bottom:1px solid var(--wpaical-cal-line)}
+.wpaical-cal .wc-eyebrow{color:var(--wpaical-cal-accent);font-weight:700;letter-spacing:1.5px;font-size:13px;text-transform:uppercase;margin:0 0 6px}
+.wpaical-cal .wc-title{font-weight:800;font-size:34px;line-height:1.15;margin:0;letter-spacing:-.5px;color:var(--wpaical-cal-text)}
+.wpaical-cal .wc-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.wpaical-cal .wc-nav{display:flex;align-items:center;gap:10px}
+.wpaical-cal .wc-navbtn{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--wpaical-cal-text);background:var(--wpaical-cal-card);color:var(--wpaical-cal-text);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;line-height:1;padding:0;transition:all .15s ease}
+.wpaical-cal .wc-navbtn:hover{background:var(--wpaical-cal-text);color:var(--wpaical-cal-card)}
+.wpaical-cal .wc-today{border:1.5px solid var(--wpaical-cal-accent);color:var(--wpaical-cal-accent);background:var(--wpaical-cal-card);border-radius:50px;padding:9px 18px;font-weight:600;font-size:13px;cursor:pointer;transition:all .15s ease}
+.wpaical-cal .wc-today:hover{background:var(--wpaical-cal-accent);color:var(--wpaical-cal-accent-contrast)}
+.wpaical-cal .wc-views{display:flex;background:var(--wpaical-cal-soft);border-radius:50px;padding:4px;gap:2px}
+.wpaical-cal .wc-views button{border:none;background:transparent;padding:8px 16px;border-radius:50px;font-weight:600;font-size:13px;color:var(--wpaical-cal-muted);cursor:pointer;transition:all .15s ease}
+.wpaical-cal .wc-views button[aria-pressed=true]{background:var(--wpaical-cal-text);color:var(--wpaical-cal-card)}
+
+/* timezone bar */
+.wpaical-cal .wc-tz{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 12px;font-size:13px;color:var(--wpaical-cal-muted)}
+.wpaical-cal .wc-tz button{border:1px solid var(--wpaical-cal-line);background:var(--wpaical-cal-card);color:var(--wpaical-cal-text);padding:6px 14px;border-radius:999px;font-weight:500;font-size:13px;cursor:pointer}
+.wpaical-cal .wc-tz button[aria-pressed=true]{background:var(--wpaical-cal-text);color:var(--wpaical-cal-card);border-color:var(--wpaical-cal-text)}
+
+/* legend */
+.wpaical-cal .wc-legend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:22px}
+.wpaical-cal .wc-chip{display:flex;align-items:center;gap:7px;padding:7px 14px;border-radius:50px;font-size:12.5px;font-weight:600;cursor:pointer;border:1.5px solid transparent;background:var(--wpaical-cal-soft);color:var(--c,var(--wpaical-cal-text));transition:all .15s ease;user-select:none}
+.wpaical-cal .wc-chip .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;background:currentColor}
+.wpaical-cal .wc-chip[aria-pressed=true]{border-color:currentColor;background:var(--cbg,#eef0f6)}
+
+/* calendar card */
+.wpaical-cal .wc-card{background:var(--wpaical-cal-card);border:1px solid var(--wpaical-cal-line);border-radius:var(--wpaical-cal-radius);box-shadow:var(--wpaical-cal-shadow);overflow:hidden}
+.wpaical-cal .wc-dow{display:grid;grid-template-columns:repeat(7,1fr);background:var(--wpaical-cal-head-bg)}
+.wpaical-cal .wc-dow div{text-align:center;padding:13px 6px;font-size:12px;font-weight:600;letter-spacing:1px;color:var(--wpaical-cal-head-text);text-transform:uppercase}
+.wpaical-cal .wc-grid{display:grid;grid-template-columns:repeat(7,1fr)}
+.wpaical-cal .wc-day{min-height:var(--wpaical-cal-cell-height);border-right:1px solid var(--wpaical-cal-line);border-bottom:1px solid var(--wpaical-cal-line);padding:10px 8px;position:relative;transition:background .15s ease;cursor:pointer;overflow:hidden;min-width:0}
+.wpaical-cal .wc-day:nth-child(7n){border-right:none}
+.wpaical-cal .wc-day:hover,.wpaical-cal .wc-day:focus-visible{background:var(--wpaical-cal-hover);outline:none}
+.wpaical-cal .wc-day:focus-visible{box-shadow:inset 0 0 0 2px var(--wpaical-cal-accent)}
+.wpaical-cal .wc-day.empty{background:var(--wpaical-cal-hover);cursor:default}
+.wpaical-cal .wc-num{font-weight:600;font-size:13.5px;color:var(--wpaical-cal-muted);display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%}
+.wpaical-cal .wc-day.today .wc-num{background:var(--wpaical-cal-today);color:var(--wpaical-cal-accent-contrast)}
+.wpaical-cal .wc-evs{margin-top:8px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.wpaical-cal .wc-ev{font-size:11px;font-weight:600;padding:3px 7px;border-radius:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:5px;width:100%;min-width:0;background:var(--cbg,#eef0f6);color:var(--c,var(--wpaical-cal-text))}
+.wpaical-cal .wc-ev .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}
+.wpaical-cal .wc-ev .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;background:currentColor}
+.wpaical-cal .wc-more{font-size:10.5px;font-weight:700;color:var(--wpaical-cal-accent);padding:2px 7px}
+
+/* week + list (agenda rows) */
+.wpaical-cal .wc-agenda{display:flex;flex-direction:column;gap:14px;padding:18px 22px 22px}
+.wpaical-cal .wc-row{display:flex;gap:20px;align-items:flex-start;padding:18px 22px;border:1px solid var(--wpaical-cal-line);border-radius:14px;background:var(--wpaical-cal-card);transition:box-shadow .15s ease}
+.wpaical-cal .wc-row:hover{box-shadow:0 8px 24px rgba(0,0,0,.08)}
+.wpaical-cal .wc-row.today{border-color:var(--wpaical-cal-today);box-shadow:0 0 0 1.5px var(--wpaical-cal-today)}
+.wpaical-cal .wc-rdate{display:flex;flex-direction:column;align-items:center;min-width:58px;color:var(--wpaical-cal-text)}
+.wpaical-cal .wc-rdow{font-size:11px;font-weight:700;letter-spacing:1px;color:var(--wpaical-cal-accent);text-transform:uppercase}
+.wpaical-cal .wc-rnum{font-size:26px;font-weight:800;line-height:1.1}
+.wpaical-cal .wc-revs{flex:1;display:flex;flex-direction:column;gap:10px;min-width:0}
+.wpaical-cal .wc-item{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.wpaical-cal .wc-time{font-weight:600;font-size:13px;color:var(--wpaical-cal-muted);min-width:96px}
+.wpaical-cal .wc-name{font-weight:600;font-size:14.5px;color:var(--wpaical-cal-text);text-decoration:none}
+.wpaical-cal a.wc-name:hover{text-decoration:underline;color:var(--wpaical-cal-accent)}
+.wpaical-cal .wc-tag{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:50px;background:var(--cbg,#eef0f6);color:var(--c,var(--wpaical-cal-text))}
+.wpaical-cal .wc-loc{font-size:12.5px;color:var(--wpaical-cal-muted)}
+.wpaical-cal .wc-none{color:var(--wpaical-cal-muted);font-size:13.5px;font-style:italic;margin:0}
+.wpaical-cal .wc-status{padding:22px;text-align:center;color:var(--wpaical-cal-muted)}
+.wpaical-cal .wc-status button{margin-left:8px;border:1px solid var(--wpaical-cal-line);background:var(--wpaical-cal-card);border-radius:999px;padding:6px 14px;cursor:pointer}
+
+/* day dialog */
+.wpaical-cal .wc-overlay{position:fixed;inset:0;background:rgba(20,24,45,.45);display:flex;align-items:center;justify-content:center;z-index:99999;padding:20px}
+.wpaical-cal .wc-overlay[hidden]{display:none}
+.wpaical-cal .wc-modal{background:var(--wpaical-cal-card);border-radius:18px;max-width:460px;width:100%;max-height:80vh;overflow-y:auto;padding:28px;position:relative}
+.wpaical-cal .wc-modal h3{font-size:20px;margin:0 0 18px;padding-right:36px;color:var(--wpaical-cal-text)}
+.wpaical-cal .wc-close{position:absolute;top:18px;right:18px;width:32px;height:32px;border-radius:50%;border:none;background:var(--wpaical-cal-soft);color:var(--wpaical-cal-text);font-size:16px;cursor:pointer}
+.wpaical-cal .wc-mevt{padding:12px 0;border-bottom:1px solid var(--wpaical-cal-line)}
+.wpaical-cal .wc-mevt:last-child{border-bottom:none}
+.wpaical-cal .wc-mevt .wc-name{display:block;margin:6px 0}
+.wpaical-cal .wc-mevt .wc-link{font-size:12px;font-weight:700;color:var(--wpaical-cal-accent);text-decoration:none}
+.wpaical-cal .wc-mevt .wc-link:hover{text-decoration:underline}
+
+@media(max-width:760px){.wpaical-cal .wc-title{font-size:26px}.wpaical-cal{--wpaical-cal-cell-height:92px}.wpaical-cal .wc-ev .t{max-width:60px}}
+@media(max-width:620px){.wpaical-cal .wc-grid,.wpaical-cal .wc-dow{overflow-x:auto}.wpaical-cal .wc-agenda{padding:12px}.wpaical-cal .wc-row{padding:14px;gap:14px}}
+@media(max-width:480px){.wpaical-cal{--wpaical-cal-cell-height:64px}.wpaical-cal .wc-day{padding:6px 4px}.wpaical-cal .wc-num{width:22px;height:22px;font-size:12px}.wpaical-cal .wc-ev{justify-content:center;padding:5px 0}.wpaical-cal .wc-ev .t{display:none}.wpaical-cal .wc-ev .dot{width:7px;height:7px}.wpaical-cal .wc-more{text-align:center}.wpaical-cal .wc-controls{width:100%;justify-content:space-between;gap:8px}.wpaical-cal .wc-navbtn{width:34px;height:34px;font-size:15px}.wpaical-cal .wc-today{padding:8px 14px;font-size:12.5px}.wpaical-cal .wc-views button{padding:7px 12px;font-size:12.5px}}
+@media(prefers-reduced-motion:reduce){.wpaical-cal *{transition:none!important}}

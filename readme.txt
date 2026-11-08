@@ -4,7 +4,7 @@ Tags: calendar, events, google calendar, rest api, mcp
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.1.6
+Stable tag: 0.1.7
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -54,6 +54,11 @@ No. The plugin itself never contacts an AI provider. If you connect an AI client
 Every 5 minutes, and immediately after any change made through the plugin.
 
 == Changelog ==
+
+= 0.1.7 =
+* New [wpaical_calendar] shortcode: a full calendar UI with month, week and list views, category filters with per-category colours, a day pop-up, keyboard support, and an automatic "your time / event time" switch. Fully themeable with CSS variables; shows a server-rendered upcoming list when JavaScript is off.
+* Category colours can be set in Settings.
+* The cache now keeps 90 days of past events so the calendar can browse back.
 
 = 0.1.6 =
 * New "Program cards" screen (AI Calendar menu): pick a program, see its upcoming dates, and change each date's picture and link (this date only, or the whole series). Changes are saved to Google Calendar. Includes a live preview and the shortcode to paste.

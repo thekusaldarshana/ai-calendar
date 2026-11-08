@@ -53,6 +53,15 @@ class WPAICal_Admin {
         update_option(WPAICal_Registry::CATEGORIES_OPTION, implode(', ', $cats));
         update_option('wpaical_instructions', sanitize_textarea_field(wp_unslash($_POST['instructions'] ?? '')));
         update_option(WPAICal_Widget::CSS_OPTION, wp_strip_all_tags(wp_unslash($_POST['widget_css'] ?? '')));
+        $colors = [];
+        $posted = isset($_POST['cat_color']) && is_array($_POST['cat_color']) ? wp_unslash($_POST['cat_color']) : [];
+        foreach ($posted as $name => $hex) {
+            $hex = sanitize_hex_color((string) $hex);
+            if ($hex) {
+                $colors[strtolower(sanitize_text_field((string) $name))] = $hex;
+            }
+        }
+        update_option(WPAICal_Registry::COLORS_OPTION, $colors);
 
         // Only touch the credentials if a new JSON was pasted (the box is never pre-filled).
         $json = isset($_POST['service_account']) && is_string($_POST['service_account']) ? trim(wp_unslash($_POST['service_account'])) : '';
@@ -129,22 +138,7 @@ class WPAICal_Admin {
 
     /** All category names to offer: the configured list, the programs' categories, and those on cached events. */
     private static function category_choices() {
-        $cats = WPAICal_Registry::categories();
-        $extra = [];
-        foreach (WPAICal_Registry::rows() as $r) {
-            $extra[] = $r['category'];
-        }
-        foreach (WPAICal_Sync::cache()['events'] as $e) {
-            if (!empty($e['categories'][0]['name'])) {
-                $extra[] = $e['categories'][0]['name'];
-            }
-        }
-        foreach ($extra as $c) {
-            if ($c !== '' && !in_array(strtolower($c), array_map('strtolower', $cats), true)) {
-                $cats[] = $c;
-            }
-        }
-        return $cats;
+        return WPAICal_Registry::all_categories();
     }
 
     /** Category from a select + "new" text field. Returns null when nothing was chosen. Registers new names if a list is in use. */
@@ -398,7 +392,15 @@ class WPAICal_Admin {
             </div>
 
             <div class="card" style="max-width:none;margin:0 0 16px;">
-                <h2 style="margin-top:0">Show upcoming events on any page</h2>
+                <h2 style="margin-top:0">Put your calendar on any page</h2>
+                <p>Full calendar (month, week and list views, category filters, timezone switch):</p>
+                <pre style="background:#f6f7f7;padding:10px;overflow:auto;margin:0 0 8px">[wpaical_calendar]</pre>
+                <p class="description" style="margin:0 0 18px">
+                    <code>views</code> month,week,list &middot; <code>default_view</code> &middot; <code>program</code> / <code>categories</code> to limit it &middot;
+                    <code>legend</code>, <code>timezone_toggle</code> yes/no &middot; <code>week_start</code> 0&ndash;6 &middot; <code>chips</code> events per day &middot; <code>eyebrow</code>, <code>title</code>.
+                    Colours: set a colour per category under Settings below; theme it with the <code>--wpaical-cal-*</code> variables in Widget CSS.
+                </p>
+                <h2 style="margin-top:0">Show upcoming events as cards</h2>
                 <p>Paste a shortcode into a page (in Elementor, use a <em>Shortcode</em> widget). It lists upcoming events from this calendar as cards, so the page never needs manual edits. Set each card's picture and link, or add cards with no date yet, under <a href="<?php echo esc_url(admin_url('admin.php?page=wp-ai-calendar-cards')); ?>">Program cards</a>.</p>
                 <pre style="background:#f6f7f7;padding:10px;overflow:auto;margin:0 0 8px">[wpaical_upcoming program="Meditate with a Monk" limit="10"]</pre>
                 <p class="description" style="margin:0">
@@ -444,6 +446,14 @@ class WPAICal_Admin {
                         <td>
                             <input id="categories" name="categories" type="text" class="regular-text" value="<?php echo esc_attr(get_option(WPAICal_Registry::CATEGORIES_OPTION, '')); ?>" placeholder="e.g. Weekly, Online, Special">
                             <p class="description">Comma-separated. Leave empty to allow any category name.</p>
+                            <?php $colors = WPAICal_Registry::category_colors(); if ($colors) : ?>
+                                <p style="margin-top:10px"><strong>Calendar colours</strong> <span class="description">used by <code>[wpaical_calendar]</code></span></p>
+                                <p class="wpaical-colors">
+                                    <?php foreach ($colors as $cname => $hex) : ?>
+                                        <label style="display:inline-flex;align-items:center;gap:6px;margin:0 14px 6px 0"><input type="color" name="cat_color[<?php echo esc_attr($cname); ?>]" value="<?php echo esc_attr($hex); ?>"> <?php echo esc_html($cname); ?></label>
+                                    <?php endforeach; ?>
+                                </p>
+                            <?php endif; ?>
                         </td>
                     </tr>
                     <tr>

@@ -23,6 +23,43 @@ class WPAICal_Registry {
         return array_values(array_filter(array_map('trim', explode(',', $raw)), 'strlen'));
     }
 
+    const COLORS_OPTION = 'wpaical_category_colors';
+
+    /** Default colours handed out to categories that have none set. */
+    const PALETTE = ['#3a7ca5', '#2f9e6b', '#7c5cbf', '#c07a32', '#c0456b', '#0e8a7d', '#b45309', '#4f46e5'];
+
+    /** Every category name in use: the configured list, those on programs, and those on cached events. */
+    public static function all_categories() {
+        $cats = self::categories();
+        $extra = [];
+        foreach (self::rows() as $r) {
+            $extra[] = $r['category'];
+        }
+        foreach (WPAICal_Sync::cache()['events'] as $e) {
+            if (!empty($e['categories'][0]['name'])) {
+                $extra[] = $e['categories'][0]['name'];
+            }
+        }
+        foreach ($extra as $c) {
+            if ($c !== '' && !in_array(strtolower($c), array_map('strtolower', $cats), true)) {
+                $cats[] = $c;
+            }
+        }
+        return $cats;
+    }
+
+    /** @return array<string,string> category name => #hex (saved colour, else a palette default by position). */
+    public static function category_colors() {
+        $saved = get_option(self::COLORS_OPTION, []);
+        $saved = is_array($saved) ? array_change_key_case($saved, CASE_LOWER) : [];
+        $out = [];
+        foreach (self::all_categories() as $i => $name) {
+            $k = strtolower($name);
+            $out[$name] = !empty($saved[$k]) ? $saved[$k] : self::PALETTE[$i % count(self::PALETTE)];
+        }
+        return $out;
+    }
+
     /** @return array<string,array{url:string,category:string}> keyed by lower-cased title. */
     public static function all() {
         static $memo = []; // parsed once per distinct option value (resolve() runs once per event)
