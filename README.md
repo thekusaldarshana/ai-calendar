@@ -1,5 +1,7 @@
 # WP AI Calendar
 
+[![CI](https://github.com/thekusaldarshana/wp-ai-calendar/actions/workflows/ci.yml/badge.svg)](https://github.com/thekusaldarshana/wp-ai-calendar/actions/workflows/ci.yml) [![License: GPL v2+](https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg)](LICENSE) ![WordPress 6.0+](https://img.shields.io/badge/WordPress-6.0%2B-21759b) ![PHP 7.4+](https://img.shields.io/badge/PHP-7.4%2B-777bb4)
+
 Use **Google Calendar as the single source of truth** for your events. WP AI Calendar syncs it into WordPress, serves a fast JSON API for your website and digital signage, and exposes an **MCP server** so AI agents (Claude, etc.) can manage events for you.
 
 Built by [Kusal Darshana](https://kusaldarshana.com) for a meditation center's website and lobby TV, and open-sourced for anyone who wants a calendar that doesn't fight them.

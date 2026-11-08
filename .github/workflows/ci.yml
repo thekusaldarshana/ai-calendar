@@ -1,0 +1,32 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['7.4', '8.1', '8.3', '8.4']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: none
+      - name: PHP syntax check
+        run: find . -name '*.php' -not -path './.git/*' -print0 | xargs -0 -n1 php -l
+  version-consistency:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Plugin header, constant and readme stable tag must match
+        run: |
+          h=$(grep -m1 '^ \* Version:' wp-ai-calendar.php | awk '{print $3}')
+          c=$(grep -m1 "WPAICAL_VERSION'" wp-ai-calendar.php | sed -E "s/.*'([0-9][^']*)'.*/\1/")
+          s=$(grep -m1 '^Stable tag:' readme.txt | awk '{print $3}')
+          echo "header=$h constant=$c stable=$s"
+          [ "$h" = "$c" ] && [ "$h" = "$s" ]
