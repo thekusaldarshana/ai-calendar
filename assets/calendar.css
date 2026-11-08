@@ -83,7 +83,8 @@
 .wpaical-cal .wc-overlay[hidden]{display:none}
 .wpaical-cal .wc-modal{background:#fff;border-radius:18px;max-width:460px;width:100%;max-height:80vh;overflow-y:auto;padding:28px;position:relative}
 .wpaical-cal .wc-modal h3{font-family:var(--wpaical-cal-font-heading);font-size:20px;margin:0 0 18px;padding-right:30px;color:var(--wpaical-cal-text)}
-.wpaical-cal .wc-close{position:absolute;top:18px;right:18px;width:32px;height:32px;border-radius:50%;border:none;background:var(--wpaical-cal-soft);color:var(--wpaical-cal-text);font-size:16px;cursor:pointer}
+.wpaical-cal .wc-close,.wpaical-cal .wc-close:hover,.wpaical-cal .wc-close:focus,.wpaical-cal .wc-close:active{position:absolute;top:18px;right:18px;width:32px;height:32px;min-width:0;padding:0;margin:0;border-radius:50%;border:none;background:var(--wpaical-cal-close-bg,var(--wpaical-cal-soft));color:var(--wpaical-cal-close-color,var(--wpaical-cal-text));display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1;box-shadow:none;text-transform:none;letter-spacing:0;cursor:pointer}
+.wpaical-cal .wc-close:focus-visible{outline:2px solid var(--wpaical-cal-accent);outline-offset:2px}
 .wpaical-cal .wc-mevt{padding:12px 0;border-bottom:1px solid var(--wpaical-cal-line)}
 .wpaical-cal .wc-mevt:last-child{border-bottom:none}
 .wpaical-cal .wc-mevt .wc-mrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
